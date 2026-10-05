@@ -75,11 +75,20 @@ jobs:
       - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with: { channel: stable, cache: true }
-      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev imagemagick
       - run: flutter build linux --release
       - run: |
           mkdir dist
           tar -C build/linux/x64/release/bundle -czf dist/snag-linux-x64.tar.gz .
+      - name: Packaging tools
+        run: |
+          curl -fsSLo "$RUNNER_TEMP/nfpm.deb" https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_amd64.deb
+          sudo dpkg -i "$RUNNER_TEMP/nfpm.deb"
+          sudo curl -fsSLo /usr/local/bin/appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
+      # .deb, .rpm and AppImage; runners have no FUSE, so appimagetool unpacks itself.
+      - run: linux/packaging/build.sh
+        env: { APPIMAGE_EXTRACT_AND_RUN: "1" }
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: dist/* }
 
@@ -107,6 +116,19 @@ jobs:
       - run: |
           mkdir dist
           ditto -c -k --keepParent build/macos/Build/Products/Release/Snag.app dist/snag-macos.zip
+      # Drag-to-install DMG: the app next to a shortcut to /Applications.
+      # Unsigned (ad-hoc), like the zip; hdiutil on hosted runners sometimes
+      # fails with "Resource busy", so give it a few tries.
+      - name: DMG
+        run: |
+          mkdir dmg
+          ditto build/macos/Build/Products/Release/Snag.app dmg/Snag.app
+          ln -s /Applications dmg/Applications
+          for attempt in 1 2 3 4 5; do
+            hdiutil create -volname Snag -srcfolder dmg -format UDZO -ov dist/snag-macos.dmg && break
+            sleep 10
+          done
+          hdiutil verify dist/snag-macos.dmg
       - uses: actions/upload-artifact@v4
         with: { name: macos, path: dist/* }
 

@@ -21,6 +21,9 @@ BASE = "https://salehtz.github.io/snag/"
 REPO = "https://github.com/SalehTZ/snag"
 RELEASES = f"{REPO}/releases/latest"
 LATEST = f"{RELEASES}/download"
+# Other formats shown under a platform's main download.
+MAC_ALT = [(".zip", "snag-macos.zip")]
+LINUX_ALT = [(".deb", "snag-linux-x64.deb"), (".rpm", "snag-linux-x64.rpm"), (".tar.gz", "snag-linux-x64.tar.gz")]
 
 
 def icon(name: str, extra: str = "") -> str:
@@ -68,12 +71,13 @@ T = {
         "d_h": "Get Snag",
         "d_lead": "Free on every platform. On desktop, Snag fetches the official yt-dlp and ffmpeg on first run, inside its own folder.",
         "platforms": [
-            ("android-logo", "Android", "Android 7 or newer, most phones", "snag-android-arm64-v8a.apk"),
-            ("windows-logo", "Windows", "Windows 10 and 11, 64-bit", "snag-windows-x64.zip"),
-            ("apple-logo", "macOS", "Apple silicon and Intel", "snag-macos.zip"),
-            ("linux-logo", "Linux", "64-bit, extract and run", "snag-linux-x64.tar.gz"),
+            ("android-logo", "Android", "Android 7 or newer, most phones", "snag-android-arm64-v8a.apk", []),
+            ("windows-logo", "Windows", "Windows 10 and 11, 64-bit", "snag-windows-x64.zip", []),
+            ("apple-logo", "macOS", "Apple silicon and Intel", "snag-macos.dmg", MAC_ALT),
+            ("linux-logo", "Linux", "64-bit AppImage, runs on most distributions", "snag-linux-x64.AppImage", LINUX_ALT),
         ],
         "get": "Download",
+        "also": "Also as",
         "older": "Older Android phone? Get the armeabi-v7a build from",
         "all_releases": "all releases",
         "verify": "Every release is signed with the same key, so you can check that an APK really comes from us.",
@@ -93,6 +97,8 @@ T = {
             ("Is Snag really free?", "Yes. Snag is open source under the GPL-3.0 license, with no ads, no tracking, no accounts and no paid version. Donations keep development going."),
             ("Which sites does it support?", "Anything yt-dlp supports, including YouTube, Instagram, TikTok, X, Facebook, SoundCloud, Vimeo, Twitch, Reddit and well over a thousand more."),
             ("Android warns me before installing. Is it safe?", "Snag isn't on Google Play yet, so Play Protect may say it hasn't seen the app before. The code is public, and every release is signed with the same key, which you can verify."),
+            ("macOS says Snag can't be opened. What do I do?", "Snag isn't notarized by Apple, which needs a paid Apple developer account. Drag Snag from the DMG into Applications and open it once. Then go to System Settings, Privacy & Security, and click Open Anyway. You only need to do this once."),
+            ("Which Linux file should I get?", "The AppImage runs on almost any distribution: make it executable and open it. To install Snag with your package manager and get it in your app menu, use the .deb on Debian, Ubuntu or Mint, or the .rpm on Fedora or openSUSE."),
             ("Is there an iPhone version?", "No. iOS doesn't allow apps to run yt-dlp. Snag runs on Android, Windows, macOS and Linux."),
             ("A site stopped working. What should I do?", "Open Settings, then Components, and update yt-dlp. You can also switch on the nightly version, where fixes for broken sites land first."),
             ("Is downloading videos legal?", "It depends on the content and where you live. Only download what you have the right to, and respect each site's terms."),
@@ -127,12 +133,13 @@ T = {
         "d_h": "دریافت Snag",
         "d_lead": "روی همه‌ی سیستم‌عامل‌ها رایگان است. روی دسکتاپ، Snag در اولین اجرا yt-dlp و ffmpeg رسمی را داخل پوشه‌ی خودش دریافت می‌کند.",
         "platforms": [
-            ("android-logo", "اندروید", "اندروید ۷ و جدیدتر، بیشتر گوشی‌ها", "snag-android-arm64-v8a.apk"),
-            ("windows-logo", "ویندوز", "ویندوز ۱۰ و ۱۱، ۶۴ بیتی", "snag-windows-x64.zip"),
-            ("apple-logo", "مک", "Apple silicon و Intel", "snag-macos.zip"),
-            ("linux-logo", "لینوکس", "۶۴ بیتی، از حالت فشرده خارج و اجرا کنید", "snag-linux-x64.tar.gz"),
+            ("android-logo", "اندروید", "اندروید ۷ و جدیدتر، بیشتر گوشی‌ها", "snag-android-arm64-v8a.apk", []),
+            ("windows-logo", "ویندوز", "ویندوز ۱۰ و ۱۱، ۶۴ بیتی", "snag-windows-x64.zip", []),
+            ("apple-logo", "مک", "Apple silicon و Intel", "snag-macos.dmg", MAC_ALT),
+            ("linux-logo", "لینوکس", "AppImage ۶۴ بیتی، روی بیشتر توزیع‌ها اجرا می‌شود", "snag-linux-x64.AppImage", LINUX_ALT),
         ],
         "get": "دانلود",
+        "also": "قالب‌های دیگر",
         "older": "گوشی اندروید قدیمی دارید؟ نسخه‌ی armeabi-v7a را از",
         "all_releases": "همه‌ی نسخه‌ها بگیرید",
         "verify": "همه‌ی نسخه‌ها با یک کلید امضا می‌شوند تا بتوانید مطمئن شوید APK واقعاً از ماست.",
@@ -152,6 +159,8 @@ T = {
             ("Snag واقعاً رایگان است؟", "بله. Snag تحت مجوز GPL-3.0 متن‌باز است و تبلیغ، ردیابی، حساب کاربری یا نسخه‌ی پولی ندارد. کمک‌های مالی باعث ادامه‌ی توسعه می‌شوند."),
             ("از چه سایت‌هایی پشتیبانی می‌کند؟", "هر سایتی که yt-dlp پشتیبانی کند، از جمله یوتیوب، اینستاگرام، تیک‌تاک، ایکس، فیسبوک، ساندکلاد، ویمیو، توییچ، ردیت و بیش از هزار سایت دیگر."),
             ("اندروید پیش از نصب هشدار می‌دهد. امن است؟", "Snag هنوز در گوگل‌پلی نیست، پس Play Protect ممکن است بگوید این برنامه را قبلاً ندیده است. کد آن عمومی است و همه‌ی نسخه‌ها با یک کلید امضا می‌شوند که می‌توانید بررسی‌اش کنید."),
+            ("مک می‌گوید Snag باز نمی‌شود. چه کنم؟", "Snag توسط اپل notarize نشده، چون این کار حساب توسعه‌دهنده‌ی پولی اپل لازم دارد. Snag را از فایل DMG به پوشه‌ی Applications بکشید و یک بار بازش کنید. بعد به System Settings، بخش Privacy & Security بروید و Open Anyway را بزنید. این کار فقط یک بار لازم است."),
+            ("کدام فایل لینوکس را بگیرم؟", "فایل AppImage تقریباً روی همه‌ی توزیع‌ها کار می‌کند: آن را اجرایی کنید و باز کنید. برای نصب با مدیر بسته و دیدن Snag در منوی برنامه‌ها، روی دبیان، اوبونتو یا مینت فایل .deb و روی فدورا یا اوپن‌سوزه فایل .rpm را بگیرید."),
             ("نسخه‌ی آیفون دارد؟", "نه. iOS به برنامه‌ها اجازه‌ی اجرای yt-dlp نمی‌دهد. Snag روی اندروید، ویندوز، مک و لینوکس کار می‌کند."),
             ("سایتی دیگر کار نمی‌کند. چه کنم؟", "به تنظیمات، بخش اجزا بروید و yt-dlp را به‌روز کنید. می‌توانید نسخه‌ی شبانه را هم روشن کنید که رفع مشکل سایت‌ها زودتر از همه در آن می‌رسد."),
             ("دانلود ویدیو قانونی است؟", "به محتوا و محل زندگی شما بستگی دارد. فقط چیزی را دانلود کنید که حق دانلودش را دارید و به قوانین هر سایت احترام بگذارید."),
@@ -231,11 +240,17 @@ def page(lang: str) -> str:
             cells.append(f'<article class="cell cell-full"><div class="ic">{icon(name)}</div>'
                          f'<div><h3>{escape(h)}</h3><p>{escape(p)}</p></div></article>')
 
+    def alts(files: list[tuple[str, str]]) -> str:
+        if not files:
+            return ""
+        links = " · ".join(f'<a href="{LATEST}/{f}" dir="ltr">{escape(label)}</a>' for label, f in files)
+        return f'<span class="alt">{escape(t["also"])}: {links}</span>'
+
     platforms = "".join(
         f'<div class="platform">{icon(ic)}<div class="info"><strong>{escape(n)}</strong>'
-        f'<small>{escape(d)}</small></div>'
+        f'<small>{escape(d)}</small>{alts(other)}</div>'
         f'<a class="btn btn-ghost" href="{LATEST}/{file}">{icon("download-simple")}{escape(t["get"])}</a></div>'
-        for ic, n, d, file in t["platforms"]
+        for ic, n, d, file, other in t["platforms"]
     )
 
     wallet_rows = "".join(

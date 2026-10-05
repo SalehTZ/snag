@@ -1,0 +1,35 @@
+# .deb and .rpm packages, built by linux/packaging/build.sh (paths are
+# relative to the repository root). The app installs to /opt/snag; yt-dlp,
+# ffmpeg and Deno are fetched at runtime into the user's data folder, so GTK 3
+# is the only dependency.
+name: snag
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: net
+priority: optional
+maintainer: Alex Tz <31685655+SalehTZ@users.noreply.github.com>
+description: |-
+  Video and audio downloader powered by yt-dlp.
+  Paste a link, get the file: video up to 4K or audio as MP3, M4A, Opus or
+  FLAC, from YouTube and over a thousand other sites. No ads, no tracking.
+homepage: https://salehtz.github.io/snag/
+license: GPL-3.0
+depends:
+  # Ubuntu 24.04+ and Debian 13+ ship it as libgtk-3-0t64.
+  - libgtk-3-0 | libgtk-3-0t64
+overrides:
+  rpm:
+    depends:
+      - gtk3
+contents:
+  - src: build/linux/x64/release/bundle
+    dst: /opt/snag
+    type: tree
+  - src: /opt/snag/snag
+    dst: /usr/bin/snag
+    type: symlink
+  - src: linux/packaging/ir.salehtz.snag.desktop
+    dst: /usr/share/applications/ir.salehtz.snag.desktop
+  - src: build/linux/packaging/ir.salehtz.snag.png
+    dst: /usr/share/icons/hicolor/512x512/apps/ir.salehtz.snag.png

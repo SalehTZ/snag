@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Snag
+GenericName=Video Downloader
+GenericName[fa]=دانلودر ویدیو
+Comment=Download video and audio from YouTube and over a thousand other sites
+Comment[fa]=دانلود ویدیو و صدا از یوتیوب و بیش از هزار سایت دیگر
+Exec=snag
+Icon=ir.salehtz.snag
+Terminal=false
+Categories=Network;FileTransfer;
+Keywords=youtube;video;audio;music;download;yt-dlp;
+Keywords[fa]=یوتیوب;ویدیو;صدا;موسیقی;دانلود;
+StartupWMClass=ir.salehtz.snag
