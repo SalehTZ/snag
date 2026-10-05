@@ -1,4 +1,4 @@
-package dev.snagapp.snag
+package ir.salehtz.snag
 
 import org.json.JSONObject
 

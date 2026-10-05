@@ -702,20 +702,7 @@
   "setupLanguage": "Language",
   "setupStorage": "Save to your Downloads folder",
   "setupStorageSubtitle": "This version of Android asks before apps can save files there.",
-  "folderAccessTitle": "Allow access to this folder?",
-  "folderAccessBody": "Android only lets apps save to Download and Documents on their own. To save to {folder}, {app} needs \"All files access\". You can turn it off at any time in system settings.",
-  "@folderAccessBody": {
-    "placeholders": {
-      "folder": {
-        "type": "String"
-      },
-      "app": {
-        "type": "String"
-      }
-    }
-  },
-  "folderAccessAllow": "Allow access",
-  "folderAccessDenied": "No access, so downloads stay in the current folder.",
+  "folderAccessDenied": "No storage access, so downloads stay in the current folder.",
   "notifyDownloading": "Downloading",
   "@notifyDownloading": {
     "description": "Android notification title while downloading; shown as 'Downloading (3)' for several items."
@@ -741,5 +728,15 @@
       }
     },
     "description": "label is the network name used by exchanges, e.g. 'BSC · BEP20'. Keep it as is."
-  }
+  },
+  "folderNotAllowedTitle": "Pick a folder inside Download or Documents",
+  "folderNotAllowedBody": "Android only lets apps save into Download or Documents, or folders inside them. {folder} is outside those, so downloads would fail there.",
+  "@folderNotAllowedBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "folderNotAllowedOk": "Choose another folder"
 }

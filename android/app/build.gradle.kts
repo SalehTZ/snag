@@ -15,7 +15,7 @@ val releaseKey = Properties().apply {
 }
 
 android {
-    namespace = "dev.snagapp.snag"
+    namespace = "ir.salehtz.snag"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.snagapp.snag"
+        applicationId = "ir.salehtz.snag"
         minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION

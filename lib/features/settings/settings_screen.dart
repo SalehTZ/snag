@@ -696,10 +696,7 @@ class _FolderTile extends ConsumerWidget {
           final dir = await FilePicker.getDirectoryPath(
               dialogTitle: l.settingsChooseFolder);
           if (dir == null || !context.mounted) return;
-          if (!await _ensureFolderAccess(context, dir)) {
-            if (context.mounted) showSnack(context, l.folderAccessDenied);
-            return;
-          }
+          if (!await _checkFolder(context, dir)) return;
           ref
               .read(settingsProvider.notifier)
               .update((s) => s.copyWith(downloadDir: () => dir));
@@ -709,34 +706,35 @@ class _FolderTile extends ConsumerWidget {
   }
 }
 
-/// On Android 11+, folders outside Download/ and Documents/ need "All files
-/// access". Explains why before sending the user to the system screen.
-Future<bool> _ensureFolderAccess(BuildContext context, String dir) async {
+/// Android 11+ only lets Snag save inside Download/ or Documents/; Android
+/// 9/10 need the storage permission. Explains instead of failing later.
+Future<bool> _checkFolder(BuildContext context, String dir) async {
   final status = await PlatformActions.storageStatus();
-  if (status.canWriteTo(dir)) return true;
   if (!context.mounted) return false;
   final l = context.l10n;
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      icon: const Icon(Icons.folder_special_rounded),
-      title: Text(l.folderAccessTitle),
-      content: Text(l.folderAccessBody(dir, AppInfo.name)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(l.commonCancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(l.folderAccessAllow),
-        ),
-      ],
-    ),
-  );
-  if (ok != true) return false;
-  return status.needsLegacyPermission
-      ? PlatformActions.requestLegacyStorage()
-      : PlatformActions.requestAllFilesAccess();
+  if (!status.isAllowedFolder(dir)) {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.folder_off_rounded),
+        title: Text(l.folderNotAllowedTitle),
+        content: Text(l.folderNotAllowedBody(dir)),
+        actions: [
+          FilledButton(
+            autofocus: true,
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.folderNotAllowedOk),
+          ),
+        ],
+      ),
+    );
+    return false;
+  }
+  if (status.needsLegacyPermission && !status.legacyGranted) {
+    final granted = await PlatformActions.requestLegacyStorage();
+    if (!granted && context.mounted) showSnack(context, l.folderAccessDenied);
+    return granted;
+  }
+  return true;
 }
 

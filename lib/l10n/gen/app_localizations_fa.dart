@@ -1114,19 +1114,8 @@ class AppLocalizationsFa extends AppLocalizations {
       'این نسخه از اندروید پیش از ذخیره‌ی فایل در آنجا از شما اجازه می‌گیرد.';
 
   @override
-  String get folderAccessTitle => 'به این پوشه دسترسی داده شود؟';
-
-  @override
-  String folderAccessBody(String folder, String app) {
-    return 'اندروید به برنامه‌ها اجازه می‌دهد خودشان فقط در Download و Documents فایل ذخیره کنند. برای ذخیره در $folder، $app به «دسترسی به همه‌ی فایل‌ها» نیاز دارد. هر وقت خواستید می‌توانید آن را در تنظیمات سیستم خاموش کنید.';
-  }
-
-  @override
-  String get folderAccessAllow => 'اجازه دادن';
-
-  @override
   String get folderAccessDenied =>
-      'دسترسی داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.';
+      'اجازه‌ی دسترسی به حافظه داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.';
 
   @override
   String get notifyDownloading => 'در حال دانلود';
@@ -1156,4 +1145,16 @@ class AppLocalizationsFa extends AppLocalizations {
   String cryptoNetworkLabel(String label) {
     return 'هنگام برداشت این شبکه را انتخاب کنید: $label';
   }
+
+  @override
+  String get folderNotAllowedTitle =>
+      'پوشه‌ای داخل Download یا Documents انتخاب کنید';
+
+  @override
+  String folderNotAllowedBody(String folder) {
+    return 'اندروید به برنامه‌ها اجازه می‌دهد فقط در Download یا Documents (یا پوشه‌های داخل آن‌ها) فایل ذخیره کنند. $folder بیرون از این‌هاست، پس دانلود در آنجا ناموفق می‌شود.';
+  }
+
+  @override
+  String get folderNotAllowedOk => 'انتخاب پوشه‌ی دیگر';
 }

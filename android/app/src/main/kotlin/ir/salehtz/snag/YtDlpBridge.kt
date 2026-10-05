@@ -1,4 +1,4 @@
-package dev.snagapp.snag
+package ir.salehtz.snag
 
 import android.content.Context
 import android.os.Environment

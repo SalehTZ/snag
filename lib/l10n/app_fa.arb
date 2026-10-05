@@ -292,10 +292,7 @@
   "setupLanguage": "زبان",
   "setupStorage": "ذخیره در پوشه‌ی دانلودها",
   "setupStorageSubtitle": "این نسخه از اندروید پیش از ذخیره‌ی فایل در آنجا از شما اجازه می‌گیرد.",
-  "folderAccessTitle": "به این پوشه دسترسی داده شود؟",
-  "folderAccessBody": "اندروید به برنامه‌ها اجازه می‌دهد خودشان فقط در Download و Documents فایل ذخیره کنند. برای ذخیره در {folder}، {app} به «دسترسی به همه‌ی فایل‌ها» نیاز دارد. هر وقت خواستید می‌توانید آن را در تنظیمات سیستم خاموش کنید.",
-  "folderAccessAllow": "اجازه دادن",
-  "folderAccessDenied": "دسترسی داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.",
+  "folderAccessDenied": "اجازه‌ی دسترسی به حافظه داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.",
   "notifyDownloading": "در حال دانلود",
   "supportCrypto": "ارز دیجیتال",
   "cryptoTitle": "حمایت با ارز دیجیتال",
@@ -303,5 +300,8 @@
   "cryptoCopy": "کپی آدرس",
   "cryptoCopied": "آدرس {network} کپی شد",
   "cryptoLowestFees": "کمترین کارمزد",
-  "cryptoNetworkLabel": "هنگام برداشت این شبکه را انتخاب کنید: {label}"
+  "cryptoNetworkLabel": "هنگام برداشت این شبکه را انتخاب کنید: {label}",
+  "folderNotAllowedTitle": "پوشه‌ای داخل Download یا Documents انتخاب کنید",
+  "folderNotAllowedBody": "اندروید به برنامه‌ها اجازه می‌دهد فقط در Download یا Documents (یا پوشه‌های داخل آن‌ها) فایل ذخیره کنند. {folder} بیرون از این‌هاست، پس دانلود در آنجا ناموفق می‌شود.",
+  "folderNotAllowedOk": "انتخاب پوشه‌ی دیگر"
 }

@@ -1121,19 +1121,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'This version of Android asks before apps can save files there.';
 
   @override
-  String get folderAccessTitle => 'Allow access to this folder?';
-
-  @override
-  String folderAccessBody(String folder, String app) {
-    return 'Android only lets apps save to Download and Documents on their own. To save to $folder, $app needs \"All files access\". You can turn it off at any time in system settings.';
-  }
-
-  @override
-  String get folderAccessAllow => 'Allow access';
-
-  @override
   String get folderAccessDenied =>
-      'No access, so downloads stay in the current folder.';
+      'No storage access, so downloads stay in the current folder.';
 
   @override
   String get notifyDownloading => 'Downloading';
@@ -1163,4 +1152,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String cryptoNetworkLabel(String label) {
     return 'Pick this network when withdrawing: $label';
   }
+
+  @override
+  String get folderNotAllowedTitle =>
+      'Pick a folder inside Download or Documents';
+
+  @override
+  String folderNotAllowedBody(String folder) {
+    return 'Android only lets apps save into Download or Documents, or folders inside them. $folder is outside those, so downloads would fail there.';
+  }
+
+  @override
+  String get folderNotAllowedOk => 'Choose another folder';
 }

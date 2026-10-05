@@ -1850,28 +1850,10 @@ abstract class AppLocalizations {
   /// **'This version of Android asks before apps can save files there.'**
   String get setupStorageSubtitle;
 
-  /// No description provided for @folderAccessTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow access to this folder?'**
-  String get folderAccessTitle;
-
-  /// No description provided for @folderAccessBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Android only lets apps save to Download and Documents on their own. To save to {folder}, {app} needs \"All files access\". You can turn it off at any time in system settings.'**
-  String folderAccessBody(String folder, String app);
-
-  /// No description provided for @folderAccessAllow.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow access'**
-  String get folderAccessAllow;
-
   /// No description provided for @folderAccessDenied.
   ///
   /// In en, this message translates to:
-  /// **'No access, so downloads stay in the current folder.'**
+  /// **'No storage access, so downloads stay in the current folder.'**
   String get folderAccessDenied;
 
   /// Android notification title while downloading; shown as 'Downloading (3)' for several items.
@@ -1921,6 +1903,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick this network when withdrawing: {label}'**
   String cryptoNetworkLabel(String label);
+
+  /// No description provided for @folderNotAllowedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a folder inside Download or Documents'**
+  String get folderNotAllowedTitle;
+
+  /// No description provided for @folderNotAllowedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android only lets apps save into Download or Documents, or folders inside them. {folder} is outside those, so downloads would fail there.'**
+  String folderNotAllowedBody(String folder);
+
+  /// No description provided for @folderNotAllowedOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another folder'**
+  String get folderNotAllowedOk;
 }
 
 class _AppLocalizationsDelegate

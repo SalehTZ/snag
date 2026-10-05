@@ -9,4 +9,4 @@
 
 # Readable stack traces in bug reports.
 -keepattributes SourceFile,LineNumberTable
--keep class dev.snagapp.snag.** { *; }
+-keep class ir.salehtz.snag.** { *; }

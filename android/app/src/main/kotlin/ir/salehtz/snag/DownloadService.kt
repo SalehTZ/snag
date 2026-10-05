@@ -1,4 +1,4 @@
-package dev.snagapp.snag
+package ir.salehtz.snag
 
 import android.app.Notification
 import android.app.NotificationChannel

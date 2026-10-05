@@ -1,14 +1,12 @@
-package dev.snagapp.snag
+package ir.salehtz.snag
 
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -24,9 +22,6 @@ class MainActivity : FlutterActivity() {
 
     /** Results waiting for a permission dialog, keyed by request code. */
     private val pending = mutableMapOf<Int, MethodChannel.Result>()
-
-    /** Waiting for the user to come back from the "All files access" screen. */
-    private var pendingAllFiles: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -48,7 +43,6 @@ class MainActivity : FlutterActivity() {
                     "requestNotifications" -> requestNotifications(result)
                     "storageStatus" -> result.success(storageStatus())
                     "requestLegacyStorage" -> requestLegacyStorage(result)
-                    "requestAllFilesAccess" -> requestAllFilesAccess(result)
                     else -> result.notImplemented()
                 }
             }
@@ -58,12 +52,6 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingShare = sharedText(intent)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        pendingAllFiles?.success(hasAllFilesAccess())
-        pendingAllFiles = null
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -135,49 +123,25 @@ class MainActivity : FlutterActivity() {
     //
     // Android 9 and older: WRITE_EXTERNAL_STORAGE is needed for Download/.
     // Android 10: the app opts into legacy storage, which also needs it.
-    // Android 11+: apps may create files in Download/ and Documents/ freely;
-    // any other folder needs "All files access" (MANAGE_EXTERNAL_STORAGE).
+    // Android 11+: apps may create files in Download/ and Documents/ freely.
+    // Snag deliberately does not ask for "All files access", so custom
+    // folders must live inside one of those two.
 
     private val needsLegacyPermission = Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q
 
     private fun legacyStorageGranted() =
         !needsLegacyPermission || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-    private fun hasAllFilesAccess(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            legacyStorageGranted()
-        }
-
     private fun storageStatus(): Map<String, Any> = mapOf(
         "sdk" to Build.VERSION.SDK_INT,
         "needsLegacyPermission" to needsLegacyPermission,
         "legacyGranted" to legacyStorageGranted(),
-        "allFilesAccess" to hasAllFilesAccess(),
         "externalRoot" to Environment.getExternalStorageDirectory().absolutePath,
     )
 
     private fun requestLegacyStorage(result: MethodChannel.Result) {
         if (legacyStorageGranted()) return result.success(true)
         ask(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_REQUEST, result)
-    }
-
-    private fun requestAllFilesAccess(result: MethodChannel.Result) {
-        if (hasAllFilesAccess()) return result.success(true)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return requestLegacyStorage(result)
-        pendingAllFiles?.success(false)
-        pendingAllFiles = result
-        val app = Intent(
-            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-            Uri.parse("package:$packageName"),
-        )
-        try {
-            startActivity(app)
-        } catch (_: ActivityNotFoundException) {
-            // Some ROMs only offer the global list.
-            startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
-        }
     }
 
     companion object {
