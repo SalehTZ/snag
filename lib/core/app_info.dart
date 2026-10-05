@@ -4,10 +4,10 @@ abstract final class AppInfo {
   static const tagline = 'Paste a link. Get the file.';
   static const version = '0.1.0';
 
-  static const repoUrl = 'https://github.com/snagapp/snag';
+  static const repoUrl = 'https://github.com/SalehTZ/snag';
   static const issuesUrl = '$repoUrl/issues';
-  static const sponsorUrl = 'https://github.com/sponsors/snagapp';
-  static const kofiUrl = 'https://ko-fi.com/snagapp';
+  static const sponsorUrl = 'https://github.com/sponsors/SalehTZ';
+  static const kofiUrl = 'https://ko-fi.com/salehtz';
 
   static const ytDlpUrl = 'https://github.com/yt-dlp/yt-dlp';
   static const supportedSitesUrl =

@@ -70,8 +70,10 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
             }
             "cancel" -> {
                 val taskId = call.argument<String>("taskId")!!
-                cancelled.add(taskId)
-                YoutubeDL.getInstance().destroyProcessById(taskId)
+                if (active.containsKey(taskId)) {
+                    cancelled.add(taskId)
+                    YoutubeDL.getInstance().destroyProcessById(taskId)
+                }
                 result.success(null)
             }
             "version" -> background(result) {
@@ -105,6 +107,7 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
         YoutubeDLRequest(emptyList<String>()).addCommands(args)
 
     private fun start(taskId: String, args: List<String>) {
+        cancelled.remove(taskId)
         active[taskId] = 0f
         DownloadService.refresh(appContext)
         pool.execute {

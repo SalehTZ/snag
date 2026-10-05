@@ -190,6 +190,7 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
     } catch (e) {
       _fail(task.id, EngineException('Cannot write to the download folder. '
           'Pick another one in Settings.', details: '$e'));
+      _pump();
       return;
     }
 
@@ -245,7 +246,8 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
               stage: () => event.label,
             ));
       case MetaEvent(:final meta):
-        _patch(id, (t) => t.copyWith(meta: t.meta.merge(meta)));
+        // yt-dlp's own metadata is authoritative; keep ours as fallback.
+        _patch(id, (t) => t.copyWith(meta: meta.merge(t.meta)));
       case FileEvent(:final path):
         _patch(id, (t) => t.copyWith(filePath: path));
       case LogEvent(:final message):

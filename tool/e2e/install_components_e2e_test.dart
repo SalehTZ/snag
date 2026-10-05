@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
 // Downloads and unpacks the real ffmpeg and Deno builds (~150 MB total).
 //
 //   flutter test tool/e2e/install_components_e2e_test.dart

@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
 // Real end-to-end check of the desktop engine: downloads the official yt-dlp
 // release, then downloads real media through Snag's arguments and parser.
 // Needs network. Run with:

@@ -150,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             quality: s.defaultQuality,
             audioFormat: s.defaultAudioFormat,
           ),
-          MediaMeta(title: url),
+          const MediaMeta(),
         );
     _controller.clear();
     _dismissedClipboard = url;

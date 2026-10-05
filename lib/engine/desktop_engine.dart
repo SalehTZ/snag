@@ -18,6 +18,9 @@ class DesktopEngine extends YtDlpEngine {
 
   final BinaryManager binaries;
   final _running = <String, Process>{};
+
+  /// Tasks between runLines() and process exit, including startup.
+  final _inFlight = <String>{};
   final _cancelled = <String>{};
 
   static const _env = {'PYTHONIOENCODING': 'utf-8', 'PYTHONUTF8': '1'};
@@ -80,9 +83,14 @@ class DesktopEngine extends YtDlpEngine {
     final errors = <String>[];
 
     Future<void> run() async {
+      _inFlight.add(taskId);
+      _cancelled.remove(taskId);
       final exe = await _ytDlp(settings);
+      if (_cancelled.contains(taskId)) throw const CancelledException();
       final process = await Process.start(exe, args, environment: _env);
       _running[taskId] = process;
+      // Cancelled while the process was still starting.
+      if (_cancelled.contains(taskId)) process.kill(ProcessSignal.sigkill);
 
       Stream<String> lines(Stream<List<int>> s) => s
           .transform(const Utf8Decoder(allowMalformed: true))
@@ -111,15 +119,21 @@ class DesktopEngine extends YtDlpEngine {
 
     run()
         .catchError((Object e, StackTrace st) => controller.addError(e, st))
-        .whenComplete(controller.close);
+        .whenComplete(() {
+      _inFlight.remove(taskId);
+      _cancelled.remove(taskId);
+      _running.remove(taskId);
+      controller.close();
+    });
     return controller.stream;
   }
 
   @override
   Future<void> cancel(String taskId) async {
-    final process = _running[taskId];
-    if (process == null) return;
+    if (!_inFlight.contains(taskId)) return;
     _cancelled.add(taskId);
+    final process = _running[taskId];
+    if (process == null) return; // runLines kills it as soon as it starts.
     // SIGINT lets yt-dlp stop ffmpeg children cleanly; escalate if it hangs.
     process.kill(Platform.isWindows ? ProcessSignal.sigterm : ProcessSignal.sigint);
     unawaited(Future.delayed(const Duration(seconds: 4), () {
