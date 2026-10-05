@@ -6,7 +6,7 @@
 
 <h1 align="center">Snag</h1>
 
-<p align="center"><a href="README.md">English</a> · <b>فارسی</b></p>
+<p align="center"><a href="README.md">English</a> · <b>فارسی</b> · <a href="https://salehtz.github.io/snag/fa/">وب‌سایت</a></p>
 
 <p align="center">
   <b>لینک را بچسبانید، فایل را بگیرید.</b><br>
@@ -50,10 +50,10 @@
 
 | سیستم‌عامل | فایل |
 |---|---|
-| اندروید | `snag-<version>-arm64-v8a.apk` (بیشتر گوشی‌ها)، `armeabi-v7a` برای گوشی‌های قدیمی‌تر |
-| ویندوز | `snag-<version>-windows-x64.zip`؛ از حالت فشرده خارج کنید و `snag.exe` را اجرا کنید |
-| مک | `snag-<version>-macos.zip`؛ بار اول روی برنامه راست‌کلیک کنید و **Open** را بزنید (هنوز notarize نشده) |
-| لینوکس | `snag-<version>-linux-x64.tar.gz`؛ از حالت فشرده خارج کنید و `./snag` را اجرا کنید |
+| اندروید | `snag-android-arm64-v8a.apk` (بیشتر گوشی‌ها)، `armeabi-v7a` برای گوشی‌های قدیمی‌تر |
+| ویندوز | `snag-windows-x64.zip`؛ از حالت فشرده خارج کنید و `snag.exe` را اجرا کنید |
+| مک | `snag-macos.zip`؛ بار اول روی برنامه راست‌کلیک کنید و **Open** را بزنید (هنوز notarize نشده) |
+| لینوکس | `snag-linux-x64.tar.gz`؛ از حالت فشرده خارج کنید و `./snag` را اجرا کنید |
 
 روی دسکتاپ، Snag در اولین اجرا نسخه‌های رسمی **yt-dlp**، **ffmpeg** و **Deno** را دریافت می‌کند. همه‌شان داخل پوشه‌ی خود برنامه می‌مانند و چیزی روی سیستم نصب نمی‌شود. yt-dlp را می‌توانید با یک کلیک از **تنظیمات › اجزا** به‌روز کنید؛ این مهم است چون سایت‌ها مدام تغییر می‌کنند. روی اندروید همه‌چیز داخل برنامه است.
 
@@ -65,7 +65,7 @@
 <div dir="ltr">
 
 ```bash
-apksigner verify --print-certs snag-*.apk
+apksigner verify --print-certs snag-android-*.apk
 ```
 
 </div>
@@ -147,6 +147,7 @@ flutter test                                     # unit tests (args, parsing, mo
 flutter test tool/e2e                            # real downloads through the desktop engine (needs network)
 flutter test tool/screenshots --update-goldens   # renders every screen, English and Persian
 flutter test tool/icon --update-goldens && dart run flutter_launcher_icons   # regenerate the app icon
+python3 tool/site/build.py                       # rebuild the website in docs/ (GitHub Pages)
 ```
 
 </div>

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://salehtz.github.io/snag/sitemap.xml

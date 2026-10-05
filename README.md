@@ -4,7 +4,7 @@
 
 <h1 align="center">Snag</h1>
 
-<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a></p>
+<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a> · <a href="https://salehtz.github.io/snag/">Website</a></p>
 
 <p align="center">
   <b>Paste a link. Get the file.</b><br>
@@ -52,10 +52,10 @@ Grab the latest build from **[Releases](https://github.com/SalehTZ/snag/releases
 
 | Platform | File |
 |---|---|
-| Android | `snag-<version>-arm64-v8a.apk` (most phones), `armeabi-v7a` for older ones |
-| Windows | `snag-<version>-windows-x64.zip`, unzip and run `snag.exe` |
-| macOS | `snag-<version>-macos.zip`. The first time, right-click the app and choose **Open** (it isn't notarized yet) |
-| Linux | `snag-<version>-linux-x64.tar.gz`, extract and run `./snag` |
+| Android | `snag-android-arm64-v8a.apk` (most phones), `armeabi-v7a` for older ones |
+| Windows | `snag-windows-x64.zip`, unzip and run `snag.exe` |
+| macOS | `snag-macos.zip`. The first time, right-click the app and choose **Open** (it isn't notarized yet) |
+| Linux | `snag-linux-x64.tar.gz`, extract and run `./snag` |
 
 On desktop, Snag fetches the official **yt-dlp**, **ffmpeg** and **Deno** binaries the first time it runs. It stores them in its own app folder and never installs anything system-wide. You can update yt-dlp from **Settings > Components** with one click, which matters because sites change often. On Android everything is bundled.
 
@@ -65,7 +65,7 @@ On desktop, Snag fetches the official **yt-dlp**, **ffmpeg** and **Deno** binari
 Every official Android release is signed with the same key. Check it with `apksigner` (from the Android SDK build-tools):
 
 ```bash
-apksigner verify --print-certs snag-*.apk
+apksigner verify --print-certs snag-android-*.apk
 ```
 
 The `SHA-256` digest must be:
@@ -135,6 +135,7 @@ flutter test                                     # unit tests (args, parsing, mo
 flutter test tool/e2e                            # real downloads through the desktop engine (needs network)
 flutter test tool/screenshots --update-goldens   # renders every screen to tool/screenshots/goldens
 flutter test tool/icon --update-goldens && dart run flutter_launcher_icons   # regenerate the app icon
+python3 tool/site/build.py                       # rebuild the website in docs/ (GitHub Pages)
 ```
 
 ## How it works

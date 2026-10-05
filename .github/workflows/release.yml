@@ -48,12 +48,13 @@ jobs:
       - name: Remove signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks" android/key.properties
+      # Stable names (no version) so links like
+      # releases/latest/download/snag-android-arm64-v8a.apk always work.
       - name: Rename
         run: |
-          V=${GITHUB_REF_NAME#v}
           mkdir dist
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            cp build/app/outputs/flutter-apk/app-$abi-release.apk dist/snag-$V-$abi.apk
+            cp build/app/outputs/flutter-apk/app-$abi-release.apk dist/snag-android-$abi.apk
           done
       - uses: actions/upload-artifact@v4
         with: { name: android, path: dist/* }
@@ -67,9 +68,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
       - run: flutter build linux --release
       - run: |
-          V=${GITHUB_REF_NAME#v}
           mkdir dist
-          tar -C build/linux/x64/release/bundle -czf dist/snag-$V-linux-x64.tar.gz .
+          tar -C build/linux/x64/release/bundle -czf dist/snag-linux-x64.tar.gz .
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: dist/* }
 
@@ -82,9 +82,8 @@ jobs:
       - run: flutter build windows --release
       - shell: pwsh
         run: |
-          $v = "$env:GITHUB_REF_NAME".TrimStart('v')
           New-Item -ItemType Directory dist | Out-Null
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "dist/snag-$v-windows-x64.zip"
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "dist/snag-windows-x64.zip"
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/* }
 
@@ -96,9 +95,8 @@ jobs:
         with: { channel: stable, cache: true }
       - run: flutter build macos --release
       - run: |
-          V=${GITHUB_REF_NAME#v}
           mkdir dist
-          ditto -c -k --keepParent build/macos/Build/Products/Release/Snag.app dist/snag-$V-macos.zip
+          ditto -c -k --keepParent build/macos/Build/Products/Release/Snag.app dist/snag-macos.zip
       - uses: actions/upload-artifact@v4
         with: { name: macos, path: dist/* }
 
