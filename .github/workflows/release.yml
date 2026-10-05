@@ -132,15 +132,34 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: macos, path: dist/* }
 
-  publish:
-    needs: [android, linux, windows, macos]
+  # Fails in seconds if the tag doesn't match pubspec.yaml or CHANGELOG.md
+  # has no section for it, instead of after every platform has built.
+  notes:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+      - run: python3 tool/release_notes.py --check "$GITHUB_REF_NAME"
+
+  publish:
+    needs: [notes, android, linux, windows, macos]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with: { path: dist, merge-multiple: true }
+      # CHANGELOG section, download table, help and checksums (also written
+      # to dist/SHA256SUMS.txt). GitHub appends the merged PRs below it.
+      - name: Release notes
+        id: notes
+        run: |
+          python3 tool/release_notes.py "$GITHUB_REF_NAME" dist > "$RUNNER_TEMP/notes.md"
+          echo "title=Snag ${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.notes.outputs.title }}
+          body_path: ${{ runner.temp }}/notes.md
           files: dist/*
           generate_release_notes: true
           draft: true
