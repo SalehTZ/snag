@@ -12,3 +12,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Snag's release key. Never commit it; back it up offline.
+snag-release.jks

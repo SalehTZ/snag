@@ -44,7 +44,8 @@ android {
     signingConfigs {
         if (!releaseKey.isEmpty) {
             create("release") {
-                storeFile = file(releaseKey.getProperty("storeFile"))
+                // Relative paths are resolved from android/, next to key.properties.
+                storeFile = rootProject.file(releaseKey.getProperty("storeFile"))
                 storePassword = releaseKey.getProperty("storePassword")
                 keyAlias = releaseKey.getProperty("keyAlias")
                 keyPassword = releaseKey.getProperty("keyPassword")
