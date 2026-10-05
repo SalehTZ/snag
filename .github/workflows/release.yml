@@ -40,11 +40,21 @@ jobs:
             "$RUNNER_TEMP/release.jks" "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" "$KEY_ALIAS" \
             > android/key.properties
       - run: flutter build apk --release --split-per-abi
+      # Show apksigner's full output and fail on its own exit code (pipefail),
+      # rather than grepping for a line whose wording varies across build-tools.
       - name: Verify signature
+        shell: bash
         run: |
           APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
-            | grep -E "Signer #1 certificate (DN|SHA-256)"
+          echo "Using $APKSIGNER"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            echo "== $apk"
+            "$APKSIGNER" verify --print-certs "$apk" | tee "$RUNNER_TEMP/certs.txt"
+            if [[ "$GITHUB_REF" == refs/tags/* ]] && grep -q "CN=Android Debug" "$RUNNER_TEMP/certs.txt"; then
+              echo "::error::$apk is signed with the debug key"
+              exit 1
+            fi
+          done
       - name: Remove signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks" android/key.properties
