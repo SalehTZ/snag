@@ -137,6 +137,8 @@ html[lang="fa"] h2 { letter-spacing: 0; line-height: 1.35; }
 .platform .info { flex: 1; min-width: 0; }
 .platform strong { display: block; font-size: 20px; }
 .platform small { color: var(--muted); font-size: 15px; }
+.platform .alt { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
+.platform .alt a { font-weight: 600; }
 .note { margin-top: 32px; color: var(--muted); font-size: 15px; display: flex; gap: 10px; align-items: flex-start; }
 .note .icon { color: var(--accent); margin-top: 3px; }
 @media (max-width: 760px) {

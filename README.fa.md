@@ -52,8 +52,8 @@
 |---|---|
 | اندروید | `snag-android-arm64-v8a.apk` (بیشتر گوشی‌ها)، `armeabi-v7a` برای گوشی‌های قدیمی‌تر |
 | ویندوز | `snag-windows-x64.zip`؛ از حالت فشرده خارج کنید و `snag.exe` را اجرا کنید |
-| مک | `snag-macos.zip`؛ بار اول روی برنامه راست‌کلیک کنید و **Open** را بزنید (هنوز notarize نشده) |
-| لینوکس | `snag-linux-x64.tar.gz`؛ از حالت فشرده خارج کنید و `./snag` را اجرا کنید |
+| مک | `snag-macos.dmg`؛ Snag را به پوشه‌ی Applications بکشید (یا `snag-macos.zip`). هنوز notarize نشده، پس بار اول یک بار بازش کنید، بعد به **System Settings › Privacy & Security** بروید و **Open Anyway** را بزنید |
+| لینوکس | `snag-linux-x64.AppImage` روی بیشتر توزیع‌ها اجرا می‌شود: با `chmod +x` اجرایی‌اش کنید و اجرا کنید. برای نصب با مدیر بسته، `snag-linux-x64.deb` (دبیان، اوبونتو، مینت) یا `snag-linux-x64.rpm` (فدورا، اوپن‌سوزه) را بگیرید. `snag-linux-x64.tar.gz` همان بسته‌ی ساده است: از حالت فشرده خارج کنید و `./snag` را اجرا کنید |
 
 روی دسکتاپ، Snag در اولین اجرا نسخه‌های رسمی **yt-dlp**، **ffmpeg** و **Deno** را دریافت می‌کند. همه‌شان داخل پوشه‌ی خود برنامه می‌مانند و چیزی روی سیستم نصب نمی‌شود. yt-dlp را می‌توانید با یک کلیک از **تنظیمات › اجزا** به‌روز کنید؛ این مهم است چون سایت‌ها مدام تغییر می‌کنند. روی اندروید همه‌چیز داخل برنامه است.
 
@@ -131,7 +131,7 @@ flutter run -d <android-id> # a phone or emulator
 
 # Release builds
 flutter build apk --release --split-per-abi
-flutter build linux --release
+flutter build linux --release   # بعد linux/packaging/build.sh برای .deb، .rpm و AppImage
 flutter build windows --release
 flutter build macos --release
 ```

@@ -54,8 +54,8 @@ Grab the latest build from **[Releases](https://github.com/SalehTZ/snag/releases
 |---|---|
 | Android | `snag-android-arm64-v8a.apk` (most phones), `armeabi-v7a` for older ones |
 | Windows | `snag-windows-x64.zip`, unzip and run `snag.exe` |
-| macOS | `snag-macos.zip`. The first time, right-click the app and choose **Open** (it isn't notarized yet) |
-| Linux | `snag-linux-x64.tar.gz`, extract and run `./snag` |
+| macOS | `snag-macos.dmg`, drag Snag into Applications (or `snag-macos.zip`). It isn't notarized, so the first time, open it once, then go to **System Settings > Privacy & Security** and click **Open Anyway** |
+| Linux | `snag-linux-x64.AppImage` runs on most distributions: `chmod +x` it and run it. To install it with your package manager, use `snag-linux-x64.deb` (Debian, Ubuntu, Mint) or `snag-linux-x64.rpm` (Fedora, openSUSE). `snag-linux-x64.tar.gz` is the plain bundle: extract and run `./snag` |
 
 On desktop, Snag fetches the official **yt-dlp**, **ffmpeg** and **Deno** binaries the first time it runs. It stores them in its own app folder and never installs anything system-wide. You can update yt-dlp from **Settings > Components** with one click, which matters because sites change often. On Android everything is bundled.
 
@@ -123,7 +123,7 @@ flutter run -d <android-id> # a phone or emulator
 
 # Release builds
 flutter build apk --release --split-per-abi
-flutter build linux --release
+flutter build linux --release   # then linux/packaging/build.sh for .deb, .rpm and AppImage
 flutter build windows --release
 flutter build macos --release
 ```
