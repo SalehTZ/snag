@@ -88,16 +88,18 @@ class DesktopEngine extends YtDlpEngine {
           .transform(const Utf8Decoder(allowMalformed: true))
           .transform(const LineSplitter());
 
-      final out = lines(process.stdout).listen(controller.add);
+      // Completion futures must exist before the pipes can close, or a fast
+      // process finishes before anyone is listening for "done".
+      final outDone = lines(process.stdout).forEach(controller.add);
       // yt-dlp prints postprocessor progress and errors on stderr.
-      final err = lines(process.stderr).listen((line) {
+      final errDone = lines(process.stderr).forEach((line) {
         errors.add(line);
         if (errors.length > 80) errors.removeAt(0);
         controller.add(line);
       });
 
       final code = await process.exitCode;
-      await Future.wait([out.asFuture<void>(), err.asFuture<void>()]);
+      await Future.wait([outDone, errDone]);
       _running.remove(taskId);
 
       if (_cancelled.remove(taskId)) {
