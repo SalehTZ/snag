@@ -26,8 +26,24 @@ class AndroidEngine extends YtDlpEngine {
   Future<void> _ensureInit() =>
       _init ??= _method.invokeMethod<void>('init').catchError((Object e) {
         _init = null;
-        throw EngineException('Could not start the download engine: $e');
+        throw EngineException('Could not start the download engine.',
+            details: _detailsOf(e));
       });
+
+  static String _detailsOf(Object e) => e is PlatformException
+      ? [e.message, e.details].whereType<String>().join('\n\n')
+      : '$e';
+
+  /// Runs a bridge call, turning platform errors into [EngineException]s.
+  Future<T?> _call<T>(String method, [Map<String, Object?>? args]) async {
+    try {
+      return await _method.invokeMethod<T>(method, args);
+    } on PlatformException catch (e) {
+      final message = e.message ?? e.code;
+      throw EngineException(friendlyError(_lastError(message)),
+          details: _detailsOf(e));
+    }
+  }
 
   void _onEvent(dynamic raw) {
     if (raw is! Map) return;
@@ -62,21 +78,13 @@ class AndroidEngine extends YtDlpEngine {
 
   @override
   Future<String> defaultDownloadDir() async {
-    final dir = await _method.invokeMethod<String>('downloadsDir');
-    return dir!;
+    return (await _call<String>('downloadsDir'))!;
   }
 
   @override
   Future<String> runToString(List<String> args, AppSettings settings) async {
     await _ensureInit();
-    try {
-      final out = await _method.invokeMethod<String>('run', {'args': args});
-      return out ?? '';
-    } on PlatformException catch (e) {
-      final details = e.message ?? '$e';
-      throw EngineException(friendlyError(_lastError(details)),
-          details: details);
-    }
+    return await _call<String>('run', {'args': args}) ?? '';
   }
 
   @override
@@ -105,13 +113,13 @@ class AndroidEngine extends YtDlpEngine {
   @override
   Future<String?> version(AppSettings settings) async {
     await _ensureInit();
-    return _method.invokeMethod<String>('version');
+    return _call<String>('version');
   }
 
   @override
   Future<String> update(AppSettings settings) async {
     await _ensureInit();
-    final result = await _method.invokeMethod<String>('update', {
+    final result = await _call<String>('update', {
       'channel': settings.updateChannel.name,
     });
     return result ?? 'Updated';

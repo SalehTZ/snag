@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors
 object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     const val METHOD_CHANNEL = "snag/ytdlp"
     const val EVENT_CHANNEL = "snag/ytdlp/events"
+    private const val TAG = "Snag"
 
     private val main = Handler(Looper.getMainLooper())
     private val pool = Executors.newCachedThreadPool()
@@ -76,10 +78,7 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                 }
                 result.success(null)
             }
-            "version" -> background(result) {
-                ensureInit()
-                YoutubeDL.getInstance().version(appContext)
-            }
+            "version" -> background(result) { ensureInit(); version() }
             "update" -> background(result) {
                 ensureInit()
                 val channel = when (call.argument<String>("channel")) {
@@ -87,8 +86,8 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
                 when (YoutubeDL.getInstance().updateYoutubeDL(appContext, channel)) {
-                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Already up to date"
-                    else -> "Updated to ${YoutubeDL.getInstance().version(appContext)}"
+                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Already up to date (${version()})"
+                    else -> "Updated to ${version()}"
                 }
             }
             else -> result.notImplemented()
@@ -98,10 +97,22 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
     @Synchronized
     private fun ensureInit() {
         if (initialized) return
+        val start = System.currentTimeMillis()
+        Log.i(TAG, "init: yt-dlp runtime")
         YoutubeDL.getInstance().init(appContext)
+        Log.i(TAG, "init: ffmpeg (${System.currentTimeMillis() - start} ms)")
         FFmpeg.getInstance().init(appContext)
+        Log.i(TAG, "init: done in ${System.currentTimeMillis() - start} ms")
         initialized = true
     }
+
+    /**
+     * The library only records a version after an update; for the bundled
+     * copy, ask yt-dlp itself.
+     */
+    private fun version(): String =
+        YoutubeDL.getInstance().version(appContext)
+            ?: YoutubeDL.getInstance().execute(request(listOf("--version"))).out.trim()
 
     private fun request(args: List<String>) =
         YoutubeDLRequest(emptyList<String>()).addCommands(args)
@@ -138,7 +149,8 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                 if (cancelled.remove(taskId)) {
                     emit(mapOf("taskId" to taskId, "type" to "cancelled"))
                 } else {
-                    val message = (tail.joinToString("\n") + "\n" + (e.message ?: e.toString())).trim()
+                    Log.e(TAG, "download $taskId failed", e)
+                    val message = (tail.joinToString("\n") + "\n" + describe(e)).trim()
                     emit(mapOf("taskId" to taskId, "type" to "error", "message" to message))
                 }
             } finally {
@@ -154,9 +166,21 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                 val value = work()
                 main.post { result.success(value) }
             } catch (e: Throwable) {
-                main.post { result.error("ytdlp", e.message ?: e.toString(), null) }
+                Log.e(TAG, "yt-dlp call failed", e)
+                main.post { result.error("ytdlp", describe(e), Log.getStackTraceString(e)) }
             }
         }
+    }
+
+    /** "IOException: disk full (caused by ...)", never a bare class name. */
+    private fun describe(e: Throwable): String {
+        val parts = mutableListOf<String>()
+        var t: Throwable? = e
+        while (t != null && parts.size < 4) {
+            parts += "${t.javaClass.simpleName}: ${t.message ?: "no message"}"
+            t = t.cause
+        }
+        return parts.joinToString("\ncaused by ")
     }
 
     @Suppress("DEPRECATION")
