@@ -1133,4 +1133,25 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get notifyDownloading => 'در حال دانلود';
+
+  @override
+  String get supportCrypto => 'ارز دیجیتال';
+
+  @override
+  String get cryptoTitle => 'حمایت با ارز دیجیتال';
+
+  @override
+  String get cryptoBody =>
+      'به ترتیب کمترین کارمزد. فقط روی همان شبکه‌ای که نوشته شده بفرستید: ارزی که روی شبکه‌ی دیگری فرستاده شود ممکن است برای همیشه از دست برود.';
+
+  @override
+  String get cryptoCopy => 'کپی آدرس';
+
+  @override
+  String cryptoCopied(String network) {
+    return 'آدرس $network کپی شد';
+  }
+
+  @override
+  String get cryptoLowestFees => 'کمترین کارمزد';
 }

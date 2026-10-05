@@ -64,13 +64,14 @@ Snag رایگان است و رایگان می‌ماند: نه تبلیغ، نه
 <a href="https://github.com/sponsors/SalehTZ"><img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white"></a>
 <a href="https://ko-fi.com/salehtz"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-buy%20a%20coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white"></a>
 
-**ارز دیجیتال**
+**ارز دیجیتال**، به ترتیب کمترین کارمزد. فقط روی همان شبکه‌ای که نوشته شده بفرستید؛ ارزی که روی شبکه‌ی دیگری فرستاده شود ممکن است برای همیشه از دست برود. (داخل برنامه هم دکمه‌ی کپی برای هر آدرس هست: تنظیمات › درباره › ارز دیجیتال.)
 
-| ارز | آدرس |
-|---|---|
-| USDT (TRC-20) | `YOUR_TRC20_ADDRESS` |
-| بیت‌کوین | `YOUR_BTC_ADDRESS` |
-| اتریوم / USDT (ERC-20) | `YOUR_ETH_ADDRESS` |
+| شبکه | ارسال | آدرس |
+|---|---|---|
+| **BNB Smart Chain** (کمترین کارمزد) | BNB، USDT (BEP-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **ترون** | TRX، USDT (TRC-20) | `TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt` |
+| **اتریوم** | ETH، USDT (ERC-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **بیت‌کوین** | BTC | `bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy` |
 
 رایگان هم می‌توانید کمک کنید:
 - ⭐ **به مخزن ستاره بدهید.** به دیگران کمک می‌کند Snag را پیدا کنند.

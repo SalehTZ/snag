@@ -720,5 +720,18 @@
   "notifyDownloading": "Downloading",
   "@notifyDownloading": {
     "description": "Android notification title while downloading; shown as 'Downloading (3)' for several items."
-  }
+  },
+  "supportCrypto": "Crypto",
+  "cryptoTitle": "Donate with crypto",
+  "cryptoBody": "Listed cheapest first. Send only on the network shown: coins sent on a different network can be lost for good.",
+  "cryptoCopy": "Copy address",
+  "cryptoCopied": "{network} address copied",
+  "@cryptoCopied": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "cryptoLowestFees": "Lowest fees"
 }

@@ -1140,4 +1140,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifyDownloading => 'Downloading';
+
+  @override
+  String get supportCrypto => 'Crypto';
+
+  @override
+  String get cryptoTitle => 'Donate with crypto';
+
+  @override
+  String get cryptoBody =>
+      'Listed cheapest first. Send only on the network shown: coins sent on a different network can be lost for good.';
+
+  @override
+  String get cryptoCopy => 'Copy address';
+
+  @override
+  String cryptoCopied(String network) {
+    return '$network address copied';
+  }
+
+  @override
+  String get cryptoLowestFees => 'Lowest fees';
 }

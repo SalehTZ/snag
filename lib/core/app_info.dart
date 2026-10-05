@@ -13,4 +13,42 @@ abstract final class AppInfo {
   static const ytDlpUrl = 'https://github.com/yt-dlp/yt-dlp';
   static const supportedSitesUrl =
       'https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md';
+
+  /// Donation wallets, cheapest network first. Checksums verified
+  /// (bech32, base58check, EIP-55) before adding; re-verify on any change.
+  static const wallets = [
+    Wallet(
+      network: 'BNB Smart Chain',
+      coins: 'BNB · USDT (BEP-20)',
+      address: '0xDc131f09a194957EAdD1c069765BF9e78013Ac8C',
+    ),
+    Wallet(
+      network: 'Tron',
+      coins: 'TRX · USDT (TRC-20)',
+      address: 'TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt',
+    ),
+    Wallet(
+      network: 'Ethereum',
+      coins: 'ETH · USDT (ERC-20)',
+      address: '0xDc131f09a194957EAdD1c069765BF9e78013Ac8C',
+    ),
+    Wallet(
+      network: 'Bitcoin',
+      coins: 'BTC',
+      address: 'bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy',
+    ),
+  ];
 }
+
+class Wallet {
+  const Wallet({
+    required this.network,
+    required this.coins,
+    required this.address,
+  });
+
+  final String network;
+  final String coins;
+  final String address;
+}
+

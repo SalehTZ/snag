@@ -66,13 +66,14 @@ Snag is free and always will be: no ads, no paywalls, no "pro" version. If it sa
 <a href="https://github.com/sponsors/SalehTZ"><img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white"></a>
 <a href="https://ko-fi.com/salehtz"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-buy%20a%20coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white"></a>
 
-**Crypto**
+**Crypto**, listed cheapest network first. Send only on the network shown; coins sent on a different network can be lost for good. (The app has a copy button for each address: Settings > About > Crypto.)
 
-| Coin | Address |
-|---|---|
-| USDT (TRC-20) | `YOUR_TRC20_ADDRESS` |
-| Bitcoin | `YOUR_BTC_ADDRESS` |
-| Ethereum / USDT (ERC-20) | `YOUR_ETH_ADDRESS` |
+| Network | Send | Address |
+|---|---|---|
+| **BNB Smart Chain** (lowest fees) | BNB, USDT (BEP-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **Tron** | TRX, USDT (TRC-20) | `TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt` |
+| **Ethereum** | ETH, USDT (ERC-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **Bitcoin** | BTC | `bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy` |
 
 You can also help for free:
 - ⭐ **Star the repo.** It helps other people find Snag.

@@ -24,6 +24,7 @@ import 'package:snag/engine/models.dart';
 import 'package:snag/engine/ytdlp_engine.dart';
 import 'package:snag/features/download_sheet/download_sheet.dart';
 import 'package:snag/features/queue/download_manager.dart';
+import 'package:snag/features/settings/support_card.dart';
 import 'package:snag/features/setup/components_controller.dart';
 import 'package:snag/features/setup/setup_screen.dart';
 import 'package:snag/l10n/l10n.dart';
@@ -186,6 +187,14 @@ Future<void> loadFonts() async {
   }
   await figtree.load();
   await vazir.load();
+  // Real devices resolve 'monospace' themselves; the test renderer does not.
+  const mono = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf';
+  if (File(mono).existsSync()) {
+    await (FontLoader('monospace')
+          ..addFont(Future.value(
+              ByteData.sublistView(File(mono).readAsBytesSync()))))
+        .load();
+  }
   final icons = FontLoader('MaterialIcons')
     ..addFont(Future.value(ByteData.sublistView(File(
             '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf')
@@ -230,6 +239,7 @@ Future<void> shoot(
   List overrides = const [],
   bool withHistory = true,
   Locale locale = const Locale('en'),
+  Future<void> Function(WidgetTester)? before,
 }) async {
   tester.view.physicalSize = size * dpr;
   tester.view.devicePixelRatio = dpr;
@@ -258,6 +268,7 @@ Future<void> shoot(
       home: home,
     ),
   ));
+  if (before != null) await before(tester);
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 300));
   }
@@ -347,4 +358,30 @@ void main() {
     await shoot(t, 'fa_setup_desktop', const SetupScreen(),
         size: desktop, locale: fa);
   });
+
+  for (final locale in const [Locale('en'), Locale('fa')]) {
+    testWidgets('crypto sheet ${locale.languageCode}', (t) async {
+      await shoot(
+        t,
+        'crypto_sheet_phone_${locale.languageCode}',
+        Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: FilledButton(
+                onPressed: () => showCryptoSheet(context),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+        size: const Size(412, 892),
+        dpr: 2.5,
+        locale: locale,
+        before: (t) async {
+          await t.tap(find.text('open'));
+        },
+      );
+    });
+  }
 }
+

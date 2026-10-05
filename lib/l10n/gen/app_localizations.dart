@@ -1885,6 +1885,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Downloading'**
   String get notifyDownloading;
+
+  /// No description provided for @supportCrypto.
+  ///
+  /// In en, this message translates to:
+  /// **'Crypto'**
+  String get supportCrypto;
+
+  /// No description provided for @cryptoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate with crypto'**
+  String get cryptoTitle;
+
+  /// No description provided for @cryptoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed cheapest first. Send only on the network shown: coins sent on a different network can be lost for good.'**
+  String get cryptoBody;
+
+  /// No description provided for @cryptoCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get cryptoCopy;
+
+  /// No description provided for @cryptoCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'{network} address copied'**
+  String cryptoCopied(String network);
+
+  /// No description provided for @cryptoLowestFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest fees'**
+  String get cryptoLowestFees;
 }
 
 class _AppLocalizationsDelegate
