@@ -1921,6 +1921,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lowest fees'**
   String get cryptoLowestFees;
+
+  /// label is the network name used by exchanges, e.g. 'BSC · BEP20'. Keep it as is.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick this network when withdrawing: {label}'**
+  String cryptoNetworkLabel(String label);
 }
 
 class _AppLocalizationsDelegate

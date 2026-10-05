@@ -733,5 +733,14 @@
       }
     }
   },
-  "cryptoLowestFees": "Lowest fees"
+  "cryptoLowestFees": "Lowest fees",
+  "cryptoNetworkLabel": "Pick this network when withdrawing: {label}",
+  "@cryptoNetworkLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    },
+    "description": "label is the network name used by exchanges, e.g. 'BSC · BEP20'. Keep it as is."
+  }
 }

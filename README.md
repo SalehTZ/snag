@@ -68,12 +68,23 @@ Snag is free and always will be: no ads, no paywalls, no "pro" version. If it sa
 
 **Crypto**, listed cheapest network first. Send only on the network shown; coins sent on a different network can be lost for good. (The app has a copy button for each address: Settings > About > Crypto.)
 
-| Network | Send | Address |
-|---|---|---|
-| **BNB Smart Chain** (lowest fees) | BNB, USDT (BEP-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
-| **Tron** | TRX, USDT (TRC-20) | `TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt` |
-| **Ethereum** | ETH, USDT (ERC-20) | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
-| **Bitcoin** | BTC | `bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy` |
+| Network | On exchanges, pick | Send | Address |
+|---|---|---|---|
+| **BNB Smart Chain** (lowest fees) | `BSC` / `BEP20` | BNB, USDT | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **Tron** | `TRON` / `TRC20` | TRX, USDT | `TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt` |
+| **Ethereum** | `ETH` / `ERC20` | ETH, USDT | `0xDc131f09a194957EAdD1c069765BF9e78013Ac8C` |
+| **Bitcoin** | `BTC` (SegWit, address starts with `bc1`) | BTC | `bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy` |
+
+<details>
+<summary>Which network should I use?</summary>
+
+- **BNB Smart Chain (BSC, BEP20)**: Binance's network. The cheapest here, usually a few cents. Not the same as "BNB Beacon Chain" or "opBNB".
+- **Tron (TRC20)**: the most widely supported network for USDT, especially on Iranian exchanges. Sending USDT costs around $1 unless your wallet has staked TRX.
+- **Ethereum (ERC20)**: the original smart-contract network. Often cheap lately, but fees can jump when it's busy.
+- **Bitcoin**: the original. Fees vary with network load, and it's slower than the others.
+
+The BNB Smart Chain and Ethereum addresses are the same. That's normal: both networks use the same address format. Just make sure the network you pick matches the row you're copying from.
+</details>
 
 You can also help for free:
 - ⭐ **Star the repo.** It helps other people find Snag.

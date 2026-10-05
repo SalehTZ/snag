@@ -140,6 +140,13 @@ Future<void> showCryptoSheet(BuildContext context) {
                           textDirection: TextDirection.ltr,
                           style: theme.textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant)),
+                      const SizedBox(height: 2),
+                      Text(
+                        // Isolate the LTR exchange label inside RTL text.
+                        l.cryptoNetworkLabel('\u2066${w.label}\u2069'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.primary, fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 6),
                       SelectableText(
                         w.address,

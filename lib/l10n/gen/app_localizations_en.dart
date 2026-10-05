@@ -1161,4 +1161,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cryptoLowestFees => 'Lowest fees';
+
+  @override
+  String cryptoNetworkLabel(String label) {
+    return 'Pick this network when withdrawing: $label';
+  }
 }

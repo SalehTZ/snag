@@ -19,21 +19,25 @@ abstract final class AppInfo {
   static const wallets = [
     Wallet(
       network: 'BNB Smart Chain',
+      label: 'BSC · BEP20',
       coins: 'BNB · USDT (BEP-20)',
       address: '0xDc131f09a194957EAdD1c069765BF9e78013Ac8C',
     ),
     Wallet(
       network: 'Tron',
+      label: 'TRON · TRC20',
       coins: 'TRX · USDT (TRC-20)',
       address: 'TPmJbZpicJEaG9Vj5sMLBmKvzMnyn7Bkxt',
     ),
     Wallet(
       network: 'Ethereum',
+      label: 'ETH · ERC20',
       coins: 'ETH · USDT (ERC-20)',
       address: '0xDc131f09a194957EAdD1c069765BF9e78013Ac8C',
     ),
     Wallet(
       network: 'Bitcoin',
+      label: 'BTC · SegWit',
       coins: 'BTC',
       address: 'bc1qahd3arfp90rpny73dp9unjhcdl32mmnkrln7uy',
     ),
@@ -43,11 +47,15 @@ abstract final class AppInfo {
 class Wallet {
   const Wallet({
     required this.network,
+    required this.label,
     required this.coins,
     required this.address,
   });
 
   final String network;
+
+  /// How exchanges name the network in their withdrawal menus.
+  final String label;
   final String coins;
   final String address;
 }

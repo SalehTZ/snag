@@ -1154,4 +1154,9 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get cryptoLowestFees => 'کمترین کارمزد';
+
+  @override
+  String cryptoNetworkLabel(String label) {
+    return 'هنگام برداشت این شبکه را انتخاب کنید: $label';
+  }
 }
