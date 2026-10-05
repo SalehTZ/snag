@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 
 import '../data/settings.dart';
 import 'args_builder.dart';
-import 'output_parser.dart';
 import 'ytdlp_engine.dart';
 
 /// Android: talks to the Kotlin `YtDlpPlugin`, which runs yt-dlp through
@@ -26,7 +25,7 @@ class AndroidEngine extends YtDlpEngine {
   Future<void> _ensureInit() =>
       _init ??= _method.invokeMethod<void>('init').catchError((Object e) {
         _init = null;
-        throw EngineException('Could not start the download engine.',
+        throw EngineException(EngineErrorKind.engineStart,
             details: _detailsOf(e));
       });
 
@@ -40,7 +39,7 @@ class AndroidEngine extends YtDlpEngine {
       return await _method.invokeMethod<T>(method, args);
     } on PlatformException catch (e) {
       final message = e.message ?? e.code;
-      throw EngineException(friendlyError(_lastError(message)),
+      throw EngineException.fromYtDlp(_lastError(message),
           details: _detailsOf(e));
     }
   }
@@ -64,7 +63,7 @@ class AndroidEngine extends YtDlpEngine {
         _tasks.remove(raw['taskId']);
         final message = '${raw['message'] ?? 'Unknown error'}';
         controller
-          ..addError(EngineException(friendlyError(_lastError(message)),
+          ..addError(EngineException.fromYtDlp(_lastError(message),
               details: message))
           ..close();
     }
@@ -100,7 +99,9 @@ class AndroidEngine extends YtDlpEngine {
     }).catchError((Object e) {
       _tasks.remove(taskId);
       controller
-        ..addError(e is EngineException ? e : EngineException('$e'))
+        ..addError(e is EngineException
+            ? e
+            : EngineException(EngineErrorKind.unknown, raw: '$e'))
         ..close();
     });
     return controller.stream;
@@ -117,12 +118,15 @@ class AndroidEngine extends YtDlpEngine {
   }
 
   @override
-  Future<String> update(AppSettings settings) async {
+  Future<UpdateResult> update(AppSettings settings) async {
     await _ensureInit();
-    final result = await _call<String>('update', {
+    final status = await _call<String>('update', {
       'channel': settings.updateChannel.name,
     });
-    return result ?? 'Updated';
+    return UpdateResult(
+      changed: status == 'updated',
+      version: await version(settings),
+    );
   }
 
   static String _lastError(String text) {

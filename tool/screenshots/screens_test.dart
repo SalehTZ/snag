@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,7 @@ import 'package:snag/features/download_sheet/download_sheet.dart';
 import 'package:snag/features/queue/download_manager.dart';
 import 'package:snag/features/setup/components_controller.dart';
 import 'package:snag/features/setup/setup_screen.dart';
+import 'package:snag/l10n/l10n.dart';
 import 'package:snag/shell.dart';
 
 class FakeEngine extends YtDlpEngine {
@@ -44,7 +46,8 @@ class FakeEngine extends YtDlpEngine {
   @override
   Future<String?> version(AppSettings settings) async => '2026.09.30';
   @override
-  Future<String> update(AppSettings settings) async => 'ok';
+  Future<UpdateResult> update(AppSettings settings) async =>
+      const UpdateResult(changed: true, version: '2026.09.30');
 }
 
 class FakeQueue extends DownloadManager {
@@ -146,8 +149,7 @@ final tasks = [
     meta: const MediaMeta(title: 'How bridges stand up', duration: 640),
     createdAt: now,
     status: TaskStatus.failed,
-    error: 'The site wants proof you are human. Add your browser cookies in '
-        'Settings > Network, then try again.',
+    failure: EngineException(EngineErrorKind.botCheck),
   ),
   DownloadTask(
     id: 't5',
@@ -177,10 +179,13 @@ Future<void> loadFonts() async {
   final sdk = Platform.environment['FLUTTER_ROOT'] ??
       File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.path;
   final figtree = FontLoader('Figtree');
+  final vazir = FontLoader('Vazirmatn');
   for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
     figtree.addFont(rootBundle.load('assets/fonts/Figtree-$w.ttf'));
+    vazir.addFont(rootBundle.load('assets/fonts/Vazirmatn-$w.ttf'));
   }
   await figtree.load();
+  await vazir.load();
   final icons = FontLoader('MaterialIcons')
     ..addFont(Future.value(ByteData.sublistView(File(
             '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf')
@@ -211,7 +216,7 @@ const readyComponents = {
       status: ComponentStatus(Component.ffmpeg, ComponentSource.system,
           version: '8.0.1')),
   Component.deno: ComponentState(
-      busy: true, progress: 0.62, stage: 'Downloading',
+      busy: true, progress: 0.62, stage: InstallStage.downloading,
       status: ComponentStatus(Component.deno, ComponentSource.missing)),
 };
 
@@ -224,6 +229,7 @@ Future<void> shoot(
   Brightness brightness = Brightness.light,
   List overrides = const [],
   bool withHistory = true,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = size * dpr;
   tester.view.devicePixelRatio = dpr;
@@ -239,7 +245,16 @@ Future<void> shoot(
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.build(AppTheme.schemeFromSeed(seed, brightness)),
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: AppTheme.build(AppTheme.schemeFromSeed(seed, brightness),
+          cursive: isCursiveScript(locale)),
       home: home,
     ),
   ));
@@ -308,4 +323,28 @@ void main() {
       await shoot(t, 'setup_desktop_$tag', const SetupScreen(), size: desktop, brightness: b);
     });
   }
+
+  // Persian: right-to-left layout, Vazirmatn, Persian digits, Jalali dates.
+  const fa = Locale('fa');
+  testWidgets('farsi', (t) async {
+    await shoot(t, 'fa_home_phone', const AppShell(),
+        size: phone, dpr: 2.5, locale: fa);
+    await shoot(t, 'fa_home_desktop_dark', const AppShell(),
+        size: desktop, brightness: Brightness.dark, locale: fa);
+    await shoot(t, 'fa_queue_phone', const AppShell(),
+        size: phone, dpr: 2.5, locale: fa, overrides: [
+      tabProvider.overrideWith(() => TabAt(AppTab.queue)),
+      downloadManagerProvider.overrideWith(() => FakeQueue(tasks)),
+    ]);
+    await shoot(t, 'fa_library_phone', const AppShell(),
+        size: phone, dpr: 2.5, locale: fa,
+        overrides: [tabProvider.overrideWith(() => TabAt(AppTab.library))]);
+    await shoot(t, 'fa_sheet_phone', Scaffold(body: DownloadSheet(info: sampleInfo)),
+        size: phone, dpr: 2.5, locale: fa);
+    await shoot(t, 'fa_settings_phone', const AppShell(),
+        size: const Size(412, 1800), dpr: 2, locale: fa,
+        overrides: [tabProvider.overrideWith(() => TabAt(AppTab.settings))]);
+    await shoot(t, 'fa_setup_desktop', const SetupScreen(),
+        size: desktop, locale: fa);
+  });
 }

@@ -11,6 +11,7 @@ enum UpdateChannel { stable, nightly }
 class AppSettings {
   const AppSettings({
     this.themeMode = ThemeMode.system,
+    this.localeCode,
     this.dynamicColor = true,
     this.seedColor = 0xFF6750A4,
     this.downloadDir,
@@ -43,6 +44,9 @@ class AppSettings {
   static const defaultFilenameTemplate = '%(title).180B [%(id)s].%(ext)s';
 
   final ThemeMode themeMode;
+
+  /// UI language, e.g. 'fa'. Null follows the system.
+  final String? localeCode;
   final bool dynamicColor;
   final int seedColor;
 
@@ -83,6 +87,7 @@ class AppSettings {
 
   AppSettings copyWith({
     ThemeMode? themeMode,
+    String? Function()? localeCode,
     bool? dynamicColor,
     int? seedColor,
     String? Function()? downloadDir,
@@ -113,6 +118,7 @@ class AppSettings {
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
+      localeCode: localeCode != null ? localeCode() : this.localeCode,
       dynamicColor: dynamicColor ?? this.dynamicColor,
       seedColor: seedColor ?? this.seedColor,
       downloadDir: downloadDir != null ? downloadDir() : this.downloadDir,
@@ -147,6 +153,7 @@ class AppSettings {
 
   Map<String, Object?> toJson() => {
         'themeMode': themeMode.name,
+        'localeCode': localeCode,
         'dynamicColor': dynamicColor,
         'seedColor': seedColor,
         'downloadDir': downloadDir,
@@ -182,6 +189,7 @@ class AppSettings {
         values.where((v) => v.name == name).firstOrNull ?? fallback;
     return AppSettings(
       themeMode: pick(ThemeMode.values, j['themeMode'], d.themeMode),
+      localeCode: j['localeCode'] as String?,
       dynamicColor: j['dynamicColor'] as bool? ?? d.dynamicColor,
       seedColor: j['seedColor'] as int? ?? d.seedColor,
       downloadDir: j['downloadDir'] as String?,

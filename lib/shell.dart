@@ -13,6 +13,7 @@ import 'features/library/library_screen.dart';
 import 'features/queue/download_manager.dart';
 import 'features/queue/queue_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'l10n/l10n.dart';
 import 'widgets/shapes.dart';
 
 enum AppTab { home, queue, library, settings }
@@ -64,15 +65,18 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.dispose();
   }
 
-  static const _destinations = [
-    (Icons.download_outlined, Icons.download_rounded, 'Snag'),
-    (Icons.downloading_outlined, Icons.downloading_rounded, 'Queue'),
-    (Icons.video_library_outlined, Icons.video_library_rounded, 'Library'),
-    (Icons.tune_outlined, Icons.tune_rounded, 'Settings'),
+  static const _icons = [
+    (Icons.download_outlined, Icons.download_rounded),
+    (Icons.downloading_outlined, Icons.downloading_rounded),
+    (Icons.video_library_outlined, Icons.video_library_rounded),
+    (Icons.tune_outlined, Icons.tune_rounded),
   ];
 
+  static List<String> _labels(AppLocalizations l) =>
+      [l.navSnag, l.navQueue, l.navLibrary, l.navSettings];
+
   Widget _icon(int i, bool selected, int active) {
-    final (outlined, filled, _) = _destinations[i];
+    final (outlined, filled) = _icons[i];
     final icon = Icon(selected ? filled : outlined);
     if (i != AppTab.queue.index || active == 0) return icon;
     return Badge.count(count: active, child: icon);
@@ -83,6 +87,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final tab = ref.watch(tabProvider);
     final active = ref.watch(activeCountProvider);
     final wide = MediaQuery.sizeOf(context).width >= 720;
+    final labels = _labels(context.l10n);
 
     final pages = const [
       HomeScreen(),
@@ -138,11 +143,11 @@ class _AppShellState extends ConsumerState<AppShell> {
                 ),
               ),
               destinations: [
-                for (var i = 0; i < _destinations.length; i++)
+                for (var i = 0; i < _icons.length; i++)
                   NavigationRailDestination(
                     icon: _icon(i, false, active),
                     selectedIcon: _icon(i, true, active),
-                    label: Text(_destinations[i].$3),
+                    label: Text(labels[i]),
                   ),
               ],
             ),
@@ -158,11 +163,11 @@ class _AppShellState extends ConsumerState<AppShell> {
         selectedIndex: tab.index,
         onDestinationSelected: go,
         destinations: [
-          for (var i = 0; i < _destinations.length; i++)
+          for (var i = 0; i < _icons.length; i++)
             NavigationDestination(
               icon: _icon(i, false, active),
               selectedIcon: _icon(i, true, active),
-              label: _destinations[i].$3,
+              label: labels[i],
             ),
         ],
       ),

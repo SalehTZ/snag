@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'models.dart';
+import 'ytdlp_engine.dart';
 
 /// Markers Snag asks yt-dlp to print, so output is machine-readable on every
 /// platform (desktop process pipes and the Android bridge alike).
@@ -62,18 +63,6 @@ class PostprocessEvent extends EngineEvent {
   const PostprocessEvent(this.name, this.status);
   final String name;
   final String status;
-
-  /// Friendly label for the step yt-dlp is running.
-  String get label => switch (name) {
-        'Merger' => 'Merging video and audio',
-        'ExtractAudio' || 'FFmpegExtractAudio' => 'Converting audio',
-        'EmbedThumbnail' => 'Embedding thumbnail',
-        'FFmpegMetadata' || 'Metadata' => 'Writing metadata',
-        'FFmpegEmbedSubtitle' || 'EmbedSubtitle' => 'Embedding subtitles',
-        'SponsorBlock' || 'ModifyChapters' => 'Cutting sponsor segments',
-        'MoveFiles' => 'Finishing up',
-        _ => 'Processing',
-      };
 }
 
 class MetaEvent extends EngineEvent {
@@ -94,40 +83,33 @@ class LogEvent extends EngineEvent {
   final LogLevel level;
 }
 
-/// Turns raw yt-dlp error text into something a human can act on.
-String friendlyError(String raw) {
+/// Maps raw yt-dlp error text to a kind the UI can explain and localize.
+EngineErrorKind classifyError(String raw) {
   final s = raw.toLowerCase();
   if (s.contains('confirm you') && s.contains('not a bot')) {
-    return 'The site wants proof you are human. Add your browser cookies in '
-        'Settings > Network, then try again.';
+    return EngineErrorKind.botCheck;
   }
-  if (s.contains('unsupported url')) {
-    return 'This link is not supported. Check that it points to a video or '
-        'playlist page.';
-  }
+  if (s.contains('unsupported url')) return EngineErrorKind.unsupportedUrl;
   if (s.contains('private video') || s.contains('members-only')) {
-    return 'This video is private or members-only. Cookies from a signed-in '
-        'browser may help.';
+    return EngineErrorKind.privateVideo;
   }
   if (s.contains('sign in') || s.contains('login required')) {
-    return 'This content needs you to be signed in. Add cookies in '
-        'Settings > Network.';
+    return EngineErrorKind.signInRequired;
   }
   if (s.contains('http error 429') || s.contains('too many requests')) {
-    return 'The site is rate-limiting you. Wait a bit, or use a proxy.';
+    return EngineErrorKind.rateLimited;
   }
   if (s.contains('unable to download webpage') ||
       s.contains('failed to resolve') ||
       s.contains('network is unreachable') ||
       s.contains('timed out')) {
-    return 'Could not reach the site. Check your connection or proxy.';
+    return EngineErrorKind.network;
   }
   if (s.contains('ffmpeg') && s.contains('not found')) {
-    return 'ffmpeg is missing, so audio conversion and merging cannot run. '
-        'Install it from Settings > Components.';
+    return EngineErrorKind.ffmpegMissing;
   }
   if (s.contains('requested format is not available')) {
-    return 'That quality is not available for this video. Try "Best".';
+    return EngineErrorKind.formatUnavailable;
   }
-  return raw;
+  return EngineErrorKind.unknown;
 }

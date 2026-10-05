@@ -6,6 +6,8 @@ import '../../core/app_info.dart';
 import '../../data/providers.dart';
 import '../../data/settings.dart';
 import '../../engine/binary_manager.dart';
+import '../../engine/ytdlp_engine.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/common.dart';
 import '../../widgets/shapes.dart';
 import '../setup/components_controller.dart';
@@ -16,10 +18,13 @@ class ComponentsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!isDesktop) return const _MobileEngineTile();
+    if (!isDesktop) {
+      return const Column(children: [MobileEngineTile(), NightlySwitch()]);
+    }
     final states = ref.watch(componentsProvider);
     final ctrl = ref.read(componentsProvider.notifier);
     final settings = ref.watch(settingsProvider);
+    final l = context.l10n;
 
     return Column(children: [
       for (final c in Component.values)
@@ -32,7 +37,7 @@ class ComponentsSection extends ConsumerWidget {
               ? null
               : () async {
                   final file = await FilePicker.pickFile(
-                      dialogTitle: 'Choose the ${c.label} executable');
+                      dialogTitle: l.componentChooseExecutable(c.label));
                   final path = file?.path;
                   if (path == null) return;
                   ref.read(settingsProvider.notifier).update((s) =>
@@ -57,17 +62,42 @@ class ComponentsSection extends ConsumerWidget {
             _ => null,
           },
         ),
-      SwitchListTile(
-        secondary: const Icon(Icons.science_outlined),
-        title: const Text('Nightly yt-dlp'),
-        subtitle: const Text('Fixes for broken sites land here first'),
-        value: settings.updateChannel == UpdateChannel.nightly,
-        onChanged: (v) => ref.read(settingsProvider.notifier).update((s) =>
-            s.copyWith(
-                updateChannel: v ? UpdateChannel.nightly : UpdateChannel.stable)),
-      ),
+      const NightlySwitch(),
     ]);
   }
+}
+
+class NightlySwitch extends ConsumerWidget {
+  const NightlySwitch({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final l = context.l10n;
+    return SwitchListTile(
+      secondary: const Icon(Icons.science_outlined),
+      title: Text(l.settingsNightly),
+      subtitle: Text(l.settingsNightlySubtitle),
+      value: settings.updateChannel == UpdateChannel.nightly,
+      onChanged: (v) => ref.read(settingsProvider.notifier).update((s) =>
+          s.copyWith(
+              updateChannel: v ? UpdateChannel.nightly : UpdateChannel.stable)),
+    );
+  }
+}
+
+/// Words an update outcome in the current language.
+String describeUpdate(AppLocalizations l, UpdateResult r) {
+  final version = r.version ?? l.componentUnknownVersion;
+  return r.changed ? l.componentUpdated(version) : l.componentUpToDate(version);
+}
+
+/// "Downloading 42%" in the current language.
+String describeProgress(BuildContext context, ComponentState state) {
+  final l = context.l10n;
+  final stage = l.installStage(state.stage ?? InstallStage.starting);
+  if (state.progress == null) return stage;
+  return l.installProgress(stage, context.fmt.percent(state.progress!));
 }
 
 class _ComponentRow extends StatelessWidget {
@@ -90,30 +120,34 @@ class _ComponentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l = context.l10n;
     final status = state.status;
     final source = status?.source;
 
     String subtitle;
     if (state.busy) {
-      final pct = state.progress == null
-          ? ''
-          : ' ${(state.progress! * 100).toStringAsFixed(0)}%';
-      subtitle = '${state.stage ?? 'Working'}$pct';
+      subtitle = describeProgress(context, state);
     } else if (status == null) {
-      subtitle = 'Checking...';
+      subtitle = l.componentChecking;
     } else if (!status.available) {
-      subtitle = 'Not installed · ${component.purpose}';
+      subtitle = l.componentNotInstalled(l.purpose(component));
     } else {
       subtitle = [
-        status.version ?? 'unknown version',
+        status.version ?? l.componentUnknownVersion,
         switch (source!) {
-          ComponentSource.managed => 'managed by ${AppInfo.name}',
-          ComponentSource.system => 'from your system',
-          ComponentSource.custom => 'custom: ${status.path}',
+          ComponentSource.managed => l.componentManaged(AppInfo.name),
+          ComponentSource.system => l.componentFromSystem,
+          ComponentSource.custom => l.componentCustom(status.path ?? ''),
           ComponentSource.missing => '',
         },
       ].join(' · ');
     }
+
+    final note = state.update != null
+        ? describeUpdate(l, state.update!)
+        : state.justInstalled
+            ? l.componentInstalled
+            : null;
 
     final actions = <Widget>[
       if (state.busy)
@@ -122,18 +156,19 @@ class _ComponentRow extends StatelessWidget {
           child: MorphingLoader(size: 24),
         )
       else if (status != null && !status.available)
-        FilledButton.tonal(onPressed: onInstall, child: const Text('Install'))
+        FilledButton.tonal(onPressed: onInstall, child: Text(l.componentInstall))
       else if (onUpdate != null && status != null)
-        FilledButton.tonal(onPressed: onUpdate, child: const Text('Update')),
+        FilledButton.tonal(onPressed: onUpdate, child: Text(l.componentUpdate)),
       if (!state.busy && (onPickCustom != null || onClearCustom != null))
         PopupMenuButton<int>(
-          tooltip: 'More',
-          onSelected: (v) => v == 0 ? onPickCustom?.call() : onClearCustom?.call(),
+          tooltip: l.commonMore,
+          onSelected: (v) =>
+              v == 0 ? onPickCustom?.call() : onClearCustom?.call(),
           itemBuilder: (_) => [
             if (onPickCustom != null)
-              const PopupMenuItem(value: 0, child: Text('Use a custom executable...')),
+              PopupMenuItem(value: 0, child: Text(l.componentUseCustom)),
             if (onClearCustom != null)
-              const PopupMenuItem(value: 1, child: Text('Stop using the custom path')),
+              PopupMenuItem(value: 1, child: Text(l.componentStopCustom)),
           ],
         ),
     ];
@@ -152,7 +187,7 @@ class _ComponentRow extends StatelessWidget {
       ),
       if (state.busy)
         Padding(
-          padding: const EdgeInsets.fromLTRB(72, 0, 24, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(72, 0, 24, 8),
           // ignore: deprecated_member_use
           child: LinearProgressIndicator(value: state.progress, year2023: false),
         ),
@@ -160,18 +195,18 @@ class _ComponentRow extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: ErrorPanel(
-            message: 'Could not finish: check your connection and try again.',
+            message: l.componentInstallFailed,
             details: state.error,
             onRetry: onInstall,
             compact: true,
           ),
         ),
-      if (state.message != null && !state.busy)
+      if (note != null && !state.busy)
         Padding(
-          padding: const EdgeInsets.fromLTRB(72, 0, 24, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(72, 0, 24, 8),
           child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(state.message!,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(note,
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
@@ -183,17 +218,19 @@ class _ComponentRow extends StatelessWidget {
 }
 
 /// Android: yt-dlp is bundled; only version + update apply.
-class _MobileEngineTile extends ConsumerStatefulWidget {
-  const _MobileEngineTile();
+class MobileEngineTile extends ConsumerStatefulWidget {
+  const MobileEngineTile({super.key});
 
   @override
-  ConsumerState<_MobileEngineTile> createState() => _MobileEngineTileState();
+  ConsumerState<MobileEngineTile> createState() => _MobileEngineTileState();
 }
 
-class _MobileEngineTileState extends ConsumerState<_MobileEngineTile> {
+class _MobileEngineTileState extends ConsumerState<MobileEngineTile> {
   String? _version;
+  bool _loaded = false;
   bool _busy = false;
-  String? _message;
+  UpdateResult? _result;
+  Object? _error;
 
   @override
   void initState() {
@@ -203,49 +240,61 @@ class _MobileEngineTileState extends ConsumerState<_MobileEngineTile> {
 
   Future<void> _load() async {
     try {
-      final v = await ref.read(engineProvider).version(ref.read(settingsProvider));
+      final v =
+          await ref.read(engineProvider).version(ref.read(settingsProvider));
       if (mounted) setState(() => _version = v);
     } catch (e) {
-      if (mounted) setState(() => _version = 'unavailable');
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _loaded = true);
     }
   }
 
   Future<void> _update() async {
     setState(() {
       _busy = true;
-      _message = null;
+      _result = null;
+      _error = null;
     });
     try {
-      final r = await ref.read(engineProvider).update(ref.read(settingsProvider));
-      _message = r;
-      await _load();
+      final r =
+          await ref.read(engineProvider).update(ref.read(settingsProvider));
+      _result = r;
+      _version = r.version ?? _version;
     } catch (e) {
-      _message = 'Update failed: $e';
+      _error = e;
     }
     if (mounted) setState(() => _busy = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final l = context.l10n;
+    final subtitle = _result != null
+        ? describeUpdate(l, _result!)
+        : !_loaded
+            ? l.componentChecking
+            : _version ?? l.componentUnavailable;
     return Column(children: [
       ListTile(
         leading: const Icon(Icons.memory_rounded),
         title: const Text('yt-dlp'),
-        subtitle: Text(_message ?? _version ?? 'Checking...'),
+        subtitle: Text(subtitle),
         trailing: _busy
             ? const MorphingLoader(size: 24)
-            : FilledButton.tonal(onPressed: _update, child: const Text('Update')),
+            : FilledButton.tonal(
+                onPressed: _update, child: Text(l.componentUpdate)),
       ),
-      SwitchListTile(
-        secondary: const Icon(Icons.science_outlined),
-        title: const Text('Nightly yt-dlp'),
-        subtitle: const Text('Fixes for broken sites land here first'),
-        value: settings.updateChannel == UpdateChannel.nightly,
-        onChanged: (v) => ref.read(settingsProvider.notifier).update((s) =>
-            s.copyWith(
-                updateChannel: v ? UpdateChannel.nightly : UpdateChannel.stable)),
-      ),
+      if (_error != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: ErrorPanel(
+            message: l.engineError(_error!),
+            details: l.errorDetails(_error!),
+            onRetry: _update,
+            compact: true,
+          ),
+        ),
     ]);
   }
 }

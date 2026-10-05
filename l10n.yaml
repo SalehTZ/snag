@@ -1,0 +1,8 @@
+# Translations live in lib/l10n/app_<locale>.arb. English is the template;
+# see TRANSLATING.md to add a language.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-dir: lib/l10n/gen
+output-localization-file: app_localizations.dart
+nullable-getter: false
+untranslated-messages-file: build/untranslated.json

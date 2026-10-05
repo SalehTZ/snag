@@ -85,9 +85,10 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                     "nightly" -> YoutubeDL.UpdateChannel.NIGHTLY
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
+                // Status codes; the Dart side words them in the user's language.
                 when (YoutubeDL.getInstance().updateYoutubeDL(appContext, channel)) {
-                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Already up to date (${version()})"
-                    else -> "Updated to ${version()}"
+                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "up_to_date"
+                    else -> "updated"
                 }
             }
             else -> result.notImplemented()

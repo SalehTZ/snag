@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
 import '../../engine/binary_manager.dart';
+import '../../engine/ytdlp_engine.dart';
 
 @immutable
 class ComponentState {
@@ -12,15 +13,19 @@ class ComponentState {
     this.progress,
     this.stage,
     this.error,
-    this.message,
+    this.justInstalled = false,
+    this.update,
   });
 
   final ComponentStatus? status;
   final bool busy;
   final double? progress;
-  final String? stage;
+  final InstallStage? stage;
+
+  /// Raw error text, shown under a localized headline.
   final String? error;
-  final String? message;
+  final bool justInstalled;
+  final UpdateResult? update;
 
   bool get available => status?.available ?? false;
 }
@@ -53,7 +58,8 @@ class ComponentsController extends Notifier<Map<Component, ComponentState>> {
   }
 
   Future<bool> install(Component c) async {
-    _set(c, ComponentState(status: state[c]?.status, busy: true, stage: 'Starting'));
+    _set(c, ComponentState(
+        status: state[c]?.status, busy: true, stage: InstallStage.starting));
     try {
       await _bins.install(c, onProgress: (fraction, stage) {
         if (!ref.mounted) return;
@@ -65,7 +71,7 @@ class ComponentsController extends Notifier<Map<Component, ComponentState>> {
         ));
       });
       final status = await _bins.withVersion(await _bins.resolve(c));
-      _set(c, ComponentState(status: status, message: 'Installed'));
+      _set(c, ComponentState(status: status, justInstalled: true));
       return true;
     } catch (e) {
       _set(c, ComponentState(status: state[c]?.status, error: '$e'));
@@ -75,13 +81,14 @@ class ComponentsController extends Notifier<Map<Component, ComponentState>> {
 
   Future<void> updateYtDlp() async {
     const c = Component.ytDlp;
-    _set(c, ComponentState(status: state[c]?.status, busy: true, stage: 'Updating'));
+    _set(c, ComponentState(
+        status: state[c]?.status, busy: true, stage: InstallStage.updating));
     try {
-      final engine = ref.read(engineProvider);
-      final message = await engine.update(ref.read(settingsProvider));
-      final status = await _bins.withVersion(await _bins.resolve(c,
-          override: ref.read(settingsProvider).ytDlpPath));
-      _set(c, ComponentState(status: status, message: message));
+      final settings = ref.read(settingsProvider);
+      final result = await ref.read(engineProvider).update(settings);
+      final status = await _bins.withVersion(
+          await _bins.resolve(c, override: settings.ytDlpPath));
+      _set(c, ComponentState(status: status, update: result));
     } catch (e) {
       _set(c, ComponentState(status: state[c]?.status, error: '$e'));
     }

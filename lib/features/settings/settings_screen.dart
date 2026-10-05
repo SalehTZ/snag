@@ -12,6 +12,7 @@ import '../../core/theme/theme.dart';
 import '../../data/providers.dart';
 import '../../data/settings.dart';
 import '../../engine/models.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/common.dart';
 import '../templates/templates_screen.dart';
 import 'components_section.dart';
@@ -36,44 +37,50 @@ class SettingsScreen extends ConsumerWidget {
     final n = ref.read(settingsProvider.notifier);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l = context.l10n;
 
     void set(AppSettings Function(AppSettings) f) => n.update(f);
 
     return Scaffold(
-      appBar: const PageHeader(title: 'Settings'),
+      appBar: PageHeader(title: l.settingsTitle),
       body: ReadableWidth(
         maxWidth: 760,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 40),
           children: [
             // ------------------------------------------------ appearance
-            const SectionHeader('Appearance'),
+            SectionHeader(l.settingsAppearance),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SegmentedButton<ThemeMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                       value: ThemeMode.system,
-                      icon: Icon(Icons.brightness_auto_rounded),
-                      label: Text('System')),
+                      icon: const Icon(Icons.brightness_auto_rounded),
+                      label: Text(l.themeSystem)),
                   ButtonSegment(
                       value: ThemeMode.light,
-                      icon: Icon(Icons.light_mode_rounded),
-                      label: Text('Light')),
+                      icon: const Icon(Icons.light_mode_rounded),
+                      label: Text(l.themeLight)),
                   ButtonSegment(
                       value: ThemeMode.dark,
-                      icon: Icon(Icons.dark_mode_rounded),
-                      label: Text('Dark')),
+                      icon: const Icon(Icons.dark_mode_rounded),
+                      label: Text(l.themeDark)),
                 ],
                 selected: {s.themeMode},
                 onSelectionChanged: (v) =>
                     set((s) => s.copyWith(themeMode: v.first)),
               ),
             ),
+            LanguageTile(
+              current: s.localeCode,
+              onChanged: (code) =>
+                  set((s) => s.copyWith(localeCode: () => code)),
+            ),
             SwitchListTile(
               secondary: const Icon(Icons.palette_outlined),
-              title: const Text('Colors from your system'),
-              subtitle: const Text('Match your wallpaper or accent color'),
+              title: Text(l.settingsDynamicColor),
+              subtitle: Text(l.settingsDynamicColorSubtitle),
               value: s.dynamicColor,
               onChanged: (v) => set((s) => s.copyWith(dynamicColor: v)),
             ),
@@ -95,19 +102,19 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
             // ------------------------------------------------ downloads
-            const SectionHeader('Downloads'),
+            SectionHeader(l.settingsDownloads),
             _FolderTile(current: s.downloadDir),
             ListTile(
               leading: const Icon(Icons.drive_file_rename_outline_rounded),
-              title: const Text('File name'),
+              title: Text(l.settingsFileName),
               subtitle: Text(s.filenameTemplate,
-                  style: monoStyle),
+                  textDirection: TextDirection.ltr, style: monoStyle),
               onTap: () async {
                 final v = await _editText(
                   context,
-                  title: 'File name template',
+                  title: l.settingsFileNameTemplate,
                   initial: s.filenameTemplate,
-                  helper: 'yt-dlp output template, e.g. %(uploader)s - %(title)s.%(ext)s',
+                  helper: l.settingsFileNameHelper,
                   monospace: true,
                 );
                 if (v != null) {
@@ -120,12 +127,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.download_for_offline_outlined),
-              title: const Text('Default type'),
+              title: Text(l.settingsDefaultType),
               trailing: SegmentedButton<DownloadMode>(
                 showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: DownloadMode.video, label: Text('Video')),
-                  ButtonSegment(value: DownloadMode.audio, label: Text('Audio')),
+                segments: [
+                  ButtonSegment(
+                      value: DownloadMode.video, label: Text(l.filterVideo)),
+                  ButtonSegment(
+                      value: DownloadMode.audio, label: Text(l.filterAudio)),
                 ],
                 selected: {s.defaultMode},
                 onSelectionChanged: (v) =>
@@ -134,95 +143,98 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _EnumTile<VideoQuality>(
               icon: Icons.high_quality_outlined,
-              title: 'Default video quality',
+              title: l.settingsDefaultQuality,
               value: s.defaultQuality,
               values: VideoQuality.values,
-              label: (q) => q.label,
+              label: l.quality,
               onChanged: (v) => set((s) => s.copyWith(defaultQuality: v)),
             ),
             _EnumTile<AudioFormat>(
               icon: Icons.audiotrack_outlined,
-              title: 'Default audio format',
+              title: l.settingsDefaultAudio,
               value: s.defaultAudioFormat,
               values: AudioFormat.values,
-              label: (a) => a == AudioFormat.best ? 'Original' : a.label,
+              label: l.audio,
               onChanged: (v) => set((s) => s.copyWith(defaultAudioFormat: v)),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.devices_rounded),
-              title: const Text('Prefer formats that play everywhere'),
-              subtitle: const Text('H.264 + AAC in MP4 when available'),
+              title: Text(l.settingsCompatible),
+              subtitle: Text(l.settingsCompatibleSubtitle),
               value: s.preferCompatible,
               onChanged: (v) => set((s) => s.copyWith(preferCompatible: v)),
             ),
             ListTile(
               leading: const Icon(Icons.stacked_line_chart_rounded),
-              title: const Text('Downloads at the same time'),
+              title: Text(l.settingsConcurrency),
               subtitle: Slider(
                 value: s.concurrency.toDouble(),
                 min: 1,
                 max: 5,
                 divisions: 4,
-                label: '${s.concurrency}',
+                label: context.fmt.digits(s.concurrency),
                 onChanged: (v) =>
                     set((s) => s.copyWith(concurrency: v.round())),
               ),
-              trailing: Text('${s.concurrency}',
+              trailing: Text(context.fmt.digits(s.concurrency),
                   style: theme.textTheme.titleMedium),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.content_paste_search_rounded),
-              title: const Text('Spot links in the clipboard'),
-              subtitle: const Text('Offer to paste a copied link on the Snag tab'),
+              title: Text(l.settingsClipboard),
+              subtitle: Text(l.settingsClipboardSubtitle),
               value: s.autoPaste,
               onChanged: (v) => set((s) => s.copyWith(autoPaste: v)),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.text_format_rounded),
-              title: const Text('Plain file names'),
-              subtitle: const Text('ASCII only, no spaces or special characters'),
+              title: Text(l.settingsPlainNames),
+              subtitle: Text(l.settingsPlainNamesSubtitle),
               value: s.restrictFilenames,
               onChanged: (v) => set((s) => s.copyWith(restrictFilenames: v)),
             ),
 
             // ------------------------------------------------ processing
-            const SectionHeader('Extras'),
+            SectionHeader(l.settingsExtras),
             SwitchListTile(
               secondary: const Icon(Icons.label_outline_rounded),
-              title: const Text('Embed metadata'),
-              subtitle: const Text('Title, artist, date and description'),
+              title: Text(l.settingsEmbedMetadata),
+              subtitle: Text(l.settingsEmbedMetadataSubtitle),
               value: s.embedMetadata,
               onChanged: (v) => set((s) => s.copyWith(embedMetadata: v)),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.image_outlined),
-              title: const Text('Embed thumbnail'),
-              subtitle: const Text('Shows as cover art in players'),
+              title: Text(l.settingsEmbedThumbnail),
+              subtitle: Text(l.settingsEmbedThumbnailSubtitle),
               value: s.embedThumbnail,
               onChanged: (v) => set((s) => s.copyWith(embedThumbnail: v)),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.bookmarks_outlined),
-              title: const Text('Embed chapters'),
+              title: Text(l.settingsEmbedChapters),
               value: s.embedChapters,
               onChanged: (v) => set((s) => s.copyWith(embedChapters: v)),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.subtitles_outlined),
-              title: const Text('Embed subtitles by default'),
-              subtitle: Text('Languages: ${s.subtitleLangs}'),
+              title: Text(l.settingsEmbedSubtitles),
+              subtitle:
+                  Text(l.settingsSubtitleLanguagesValue(s.subtitleLangs)),
               value: s.embedSubtitles,
               onChanged: (v) => set((s) => s.copyWith(embedSubtitles: v)),
             ),
             ListTile(
               leading: const SizedBox(width: 24),
-              title: const Text('Subtitle languages'),
-              subtitle: Text(s.subtitleLangs),
+              title: Text(l.settingsSubtitleLanguages),
+              subtitle:
+                  Text(s.subtitleLangs, textDirection: TextDirection.ltr),
               onTap: () async {
                 final v = await _editText(context,
-                    title: 'Subtitle languages',
+                    title: l.settingsSubtitleLanguages,
                     initial: s.subtitleLangs,
-                    helper: 'Comma separated, regex allowed: en.*,fa,de');
+                    helper: l.settingsSubtitleLanguagesHelper,
+                    monospace: true);
                 if (v != null && v.trim().isNotEmpty) {
                   set((s) => s.copyWith(subtitleLangs: v.trim()));
                 }
@@ -230,45 +242,48 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _EnumTile<SponsorBlockMode>(
               icon: Icons.content_cut_rounded,
-              title: 'SponsorBlock',
-              subtitle: 'Skip sponsor segments in YouTube videos',
+              title: l.settingsSponsorBlock,
+              subtitle: l.settingsSponsorBlockSubtitle,
               value: s.sponsorBlock,
               values: SponsorBlockMode.values,
               label: (m) => switch (m) {
-                SponsorBlockMode.off => 'Off',
-                SponsorBlockMode.mark => 'Mark as chapters',
-                SponsorBlockMode.remove => 'Cut them out',
+                SponsorBlockMode.off => l.sponsorOff,
+                SponsorBlockMode.mark => l.sponsorMark,
+                SponsorBlockMode.remove => l.sponsorRemove,
               },
               onChanged: (v) => set((s) => s.copyWith(sponsorBlock: v)),
             ),
 
             // ------------------------------------------------ network
-            const SectionHeader('Network and sign-in'),
+            SectionHeader(l.settingsNetwork),
             if (isDesktop)
               _EnumTile<String?>(
                 icon: Icons.cookie_outlined,
-                title: 'Use cookies from browser',
-                subtitle: 'Fixes "sign in to confirm you\'re not a bot" and private videos',
+                title: l.settingsBrowserCookies,
+                subtitle: l.settingsBrowserCookiesSubtitle,
                 value: s.cookiesFromBrowser,
                 values: [null, ..._browsers],
-                label: (b) => b == null ? 'None' : b[0].toUpperCase() + b.substring(1),
-                onChanged: (v) => set((s) => s.copyWith(cookiesFromBrowser: () => v)),
+                label: (b) => b == null
+                    ? l.commonNone
+                    : b[0].toUpperCase() + b.substring(1),
+                onChanged: (v) =>
+                    set((s) => s.copyWith(cookiesFromBrowser: () => v)),
               ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
-              title: const Text('Cookies file'),
-              subtitle: Text(s.cookiesFile ?? 'Netscape-format cookies.txt'),
+              title: Text(l.settingsCookiesFile),
+              subtitle: Text(s.cookiesFile ?? l.settingsCookiesFileHint),
               trailing: s.cookiesFile == null
                   ? null
                   : IconButton(
-                      tooltip: 'Remove cookies file',
+                      tooltip: l.settingsCookiesRemove,
                       onPressed: () =>
                           set((s) => s.copyWith(cookiesFile: () => null)),
                       icon: const Icon(Icons.close_rounded),
                     ),
               onTap: () async {
-                final file =
-                    await FilePicker.pickFile(dialogTitle: 'Choose cookies.txt');
+                final file = await FilePicker.pickFile(
+                    dialogTitle: l.settingsCookiesChoose);
                 if (file == null) return;
                 // Android hands back content:// URIs; keep a private copy.
                 var path = file.path;
@@ -283,84 +298,93 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _TextTile(
               icon: Icons.vpn_lock_outlined,
-              title: 'Proxy',
+              title: l.settingsProxy,
               value: s.proxy,
-              empty: 'Not set',
-              helper: 'e.g. socks5://127.0.0.1:1080 or http://host:port',
+              empty: l.settingsNotSet,
+              helper: l.settingsProxyHelper,
+              monospace: true,
               onChanged: (v) => set((s) => s.copyWith(proxy: () => v)),
             ),
             _TextTile(
               icon: Icons.speed_rounded,
-              title: 'Speed limit',
+              title: l.settingsSpeedLimit,
               value: s.rateLimit,
-              empty: 'Unlimited',
-              helper: 'Bytes per second, e.g. 2M or 500K',
+              empty: l.settingsUnlimited,
+              helper: l.settingsSpeedLimitHelper,
+              monospace: true,
               onChanged: (v) => set((s) => s.copyWith(rateLimit: () => v)),
             ),
             if (isDesktop)
               SwitchListTile(
                 secondary: const Icon(Icons.rocket_launch_outlined),
-                title: const Text('Use aria2c'),
-                subtitle: const Text('Faster multi-connection downloads (aria2c must be installed)'),
+                title: Text(l.settingsAria2c),
+                subtitle: Text(l.settingsAria2cSubtitle),
                 value: s.useAria2c,
                 onChanged: (v) => set((s) => s.copyWith(useAria2c: v)),
               ),
 
             // ------------------------------------------------ advanced
-            const SectionHeader('Power tools'),
+            SectionHeader(l.settingsPowerTools),
             ListTile(
               leading: const Icon(Icons.terminal_rounded),
-              title: const Text('Command templates'),
-              subtitle: const Text('Saved sets of raw yt-dlp flags'),
+              title: Text(l.settingsTemplates),
+              subtitle: Text(l.settingsTemplatesSubtitle),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const TemplatesScreen())),
             ),
             _TextTile(
               icon: Icons.code_rounded,
-              title: 'Extra arguments',
+              title: l.settingsExtraArgs,
               value: s.extraArgs.isEmpty ? null : s.extraArgs,
-              empty: 'Added to every download',
-              helper: 'Raw yt-dlp flags, e.g. --no-part --geo-bypass',
+              empty: l.settingsExtraArgsEmpty,
+              helper: l.settingsExtraArgsHelper,
               monospace: true,
               onChanged: (v) => set((s) => s.copyWith(extraArgs: v ?? '')),
             ),
 
             // ------------------------------------------------ components
-            const SectionHeader('Components'),
+            SectionHeader(l.settingsComponents),
             const ComponentsSection(),
 
             // ------------------------------------------------ about
-            const SectionHeader('About'),
+            SectionHeader(l.settingsAbout),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: SupportCard(),
             ),
             ListTile(
+              leading: const Icon(Icons.translate_rounded),
+              title: Text(l.settingsHelpTranslate(AppInfo.name)),
+              subtitle: Text(l.settingsHelpTranslateSubtitle),
+              onTap: () => PlatformActions.openLink(AppInfo.translateUrl),
+            ),
+            ListTile(
               leading: const Icon(Icons.info_outline_rounded),
               title: Text('${AppInfo.name} ${AppInfo.version}'),
-              subtitle: const Text('Free and open source, GPL-3.0'),
+              subtitle: Text(l.settingsAboutLicense),
             ),
             ListTile(
               leading: const Icon(Icons.code_rounded),
-              title: const Text('Source code'),
-              subtitle: const Text(AppInfo.repoUrl),
+              title: Text(l.settingsSourceCode),
+              subtitle: const Text(AppInfo.repoUrl,
+                  textDirection: TextDirection.ltr),
               onTap: () => PlatformActions.openLink(AppInfo.repoUrl),
             ),
             ListTile(
               leading: const Icon(Icons.bug_report_outlined),
-              title: const Text('Report a problem'),
+              title: Text(l.settingsReportProblem),
               onTap: () => PlatformActions.openLink(AppInfo.issuesUrl),
             ),
             ListTile(
               leading: const Icon(Icons.favorite_outline_rounded),
-              title: const Text('Powered by yt-dlp'),
-              subtitle: const Text('The real hero. Go star it.'),
+              title: Text(l.settingsPoweredBy),
+              subtitle: Text(l.settingsPoweredBySubtitle),
               onTap: () => PlatformActions.openLink(AppInfo.ytDlpUrl),
             ),
             ListTile(
               leading: const Icon(Icons.gavel_rounded),
-              title: const Text('Open source licenses'),
+              title: Text(l.settingsLicenses),
               onTap: () => showLicensePage(
                 context: context,
                 applicationName: AppInfo.name,
@@ -370,7 +394,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Center(
               child: Text(
-                'Please only download what you have the right to.',
+                l.settingsLegal,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: scheme.onSurfaceVariant),
@@ -383,6 +407,91 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+/// Every shipped translation, English first, then by native name. A
+/// community-added ARB file shows up here with no code changes.
+List<Locale> _languages() {
+  String name(Locale l) => lookupAppLocalizations(l).languageNativeName;
+  return [...AppLocalizations.supportedLocales]..sort((a, b) =>
+      a.languageCode == 'en'
+          ? -1
+          : b.languageCode == 'en'
+              ? 1
+              : name(a).compareTo(name(b)));
+}
+
+String languageName(BuildContext context, String? code) => code == null
+    ? context.l10n.settingsLanguageSystem
+    : lookupAppLocalizations(Locale(code)).languageNativeName;
+
+/// Shows the language list. Resolves to a 1-tuple so "System default"
+/// (null) can be told apart from a dismissed dialog.
+Future<(String?,)?> showLanguagePicker(BuildContext context, String? current) {
+  return showDialog<(String?,)>(
+    context: context,
+    builder: (context) => SimpleDialog(
+      title: Text(context.l10n.settingsLanguage),
+      children: [
+        RadioGroup<String?>(
+          groupValue: current,
+          onChanged: (v) => Navigator.pop(context, (v,)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (final code in [null, for (final l in _languages()) l.languageCode])
+              RadioListTile<String?>(
+                value: code,
+                title: Text(languageName(context, code)),
+              ),
+          ]),
+        ),
+      ],
+    ),
+  );
+}
+
+class LanguageTile extends StatelessWidget {
+  const LanguageTile(
+      {super.key, required this.current, required this.onChanged});
+
+  final String? current;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.language_rounded),
+      title: Text(context.l10n.settingsLanguage),
+      subtitle: Text(languageName(context, current)),
+      trailing: const Icon(Icons.unfold_more_rounded),
+      onTap: () async {
+        final picked = await showLanguagePicker(context, current);
+        if (picked != null) onChanged(picked.$1);
+      },
+    );
+  }
+}
+
+/// Compact version for the welcome screen.
+class LanguageButton extends StatelessWidget {
+  const LanguageButton(
+      {super.key, required this.current, required this.onChanged});
+
+  final String? current;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+      onPressed: () async {
+        final picked = await showLanguagePicker(context, current);
+        if (picked != null) onChanged(picked.$1);
+      },
+      icon: const Icon(Icons.language_rounded, size: 20),
+      label: Text(languageName(context, current)),
+    );
+  }
+}
+
 Future<String?> _editText(
   BuildContext context, {
   required String title,
@@ -391,6 +500,7 @@ Future<String?> _editText(
   bool monospace = false,
 }) {
   final controller = TextEditingController(text: initial);
+  final l = context.l10n;
   return showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
@@ -400,6 +510,8 @@ Future<String?> _editText(
         child: TextField(
           controller: controller,
           autofocus: true,
+          // Templates, proxies and flags are code: always left-to-right.
+          textDirection: monospace ? TextDirection.ltr : null,
           style: monospace ? monoStyle : null,
           decoration: InputDecoration(helperText: helper, helperMaxLines: 3),
           onSubmitted: (v) => Navigator.pop(context, v),
@@ -408,10 +520,10 @@ Future<String?> _editText(
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+            child: Text(l.commonCancel)),
         FilledButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Save')),
+            child: Text(l.commonSave)),
       ],
     ),
   );
@@ -438,15 +550,15 @@ class _TextTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final code = monospace && value != null;
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
       subtitle: Text(value ?? empty,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: monospace && value != null
-              ? monoStyle
-              : null),
+          textDirection: code ? TextDirection.ltr : null,
+          style: code ? monoStyle : null),
       onTap: () async {
         final v = await _editText(context,
             title: title, initial: value, helper: helper, monospace: monospace);
@@ -480,7 +592,8 @@ class _EnumTile<T> extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text(subtitle == null ? label(value) : '${label(value)} · $subtitle'),
+      subtitle: Text(
+          subtitle == null ? label(value) : '${label(value)} · $subtitle'),
       trailing: const Icon(Icons.unfold_more_rounded),
       onTap: () async {
         final picked = await showDialog<(T,)>(
@@ -522,7 +635,7 @@ class _ColorDot extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Accent color',
+      label: context.l10n.settingsAccentColor,
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
@@ -532,7 +645,8 @@ class _ColorDot extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(selected ? AppTheme.radiusSm : 22),
+            borderRadius:
+                BorderRadius.circular(selected ? AppTheme.radiusSm : 22),
             border: Border.all(
               color: selected ? scheme.onSurface : Colors.transparent,
               width: 3,
@@ -554,16 +668,18 @@ class _FolderTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final engine = ref.watch(engineProvider);
+    final l = context.l10n;
     return FutureBuilder<String>(
-      future: current == null ? engine.defaultDownloadDir() : Future.value(current),
+      future:
+          current == null ? engine.defaultDownloadDir() : Future.value(current),
       builder: (context, snap) => ListTile(
         leading: const Icon(Icons.folder_outlined),
-        title: const Text('Save to'),
-        subtitle: Text(snap.data ?? '...'),
+        title: Text(l.settingsSaveTo),
+        subtitle: Text(snap.data ?? '...', textDirection: TextDirection.ltr),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           if (current != null)
             IconButton(
-              tooltip: 'Use the default folder',
+              tooltip: l.settingsUseDefaultFolder,
               onPressed: () => ref
                   .read(settingsProvider.notifier)
                   .update((s) => s.copyWith(downloadDir: () => null)),
@@ -571,14 +687,14 @@ class _FolderTile extends ConsumerWidget {
             ),
           if (isDesktop && snap.data != null)
             IconButton(
-              tooltip: 'Open folder',
+              tooltip: l.settingsOpenFolder,
               onPressed: () => PlatformActions.openFolder(snap.data!),
               icon: const Icon(Icons.open_in_new_rounded),
             ),
         ]),
         onTap: () async {
           final dir = await FilePicker.getDirectoryPath(
-              dialogTitle: 'Where should downloads go?');
+              dialogTitle: l.settingsChooseFolder);
           if (dir != null) {
             ref
                 .read(settingsProvider.notifier)

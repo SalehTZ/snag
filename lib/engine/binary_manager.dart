@@ -9,14 +9,17 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 enum Component {
-  ytDlp('yt-dlp', 'The download engine. Required.'),
-  ffmpeg('ffmpeg', 'Merges video with audio and converts formats.'),
-  deno('Deno', 'JavaScript runtime that YouTube now requires.');
+  ytDlp('yt-dlp'),
+  ffmpeg('ffmpeg'),
+  deno('Deno');
 
-  const Component(this.label, this.purpose);
+  const Component(this.label);
+
+  /// Product name; never translated.
   final String label;
-  final String purpose;
 }
+
+enum InstallStage { starting, downloading, unpacking, updating }
 
 enum ComponentSource { managed, system, custom, missing }
 
@@ -31,7 +34,7 @@ class ComponentStatus {
 }
 
 /// Download progress for a component install: 0..1, or null if unknown.
-typedef InstallProgress = void Function(double? fraction, String stage);
+typedef InstallProgress = void Function(double? fraction, InstallStage stage);
 
 /// Finds, downloads and updates the desktop helper binaries. Everything lives
 /// in `<app support>/bin`, so nothing touches system directories.
@@ -135,7 +138,6 @@ class BinaryManager {
               '$arch/release/$tool.zip'),
           archive,
           onProgress,
-          label: 'Downloading $tool',
         );
         await _extractPicking(archive, {tool}, onProgress);
       }
@@ -202,7 +204,7 @@ class BinaryManager {
   }
 
   Future<void> _download(Uri uri, String target, InstallProgress? onProgress,
-      {String label = 'Downloading'}) async {
+) async {
     final tmp = File('$target.part');
     final response = await _client.send(http.Request('GET', uri));
     if (response.statusCode != 200) {
@@ -215,8 +217,8 @@ class BinaryManager {
       await for (final chunk in response.stream) {
         sink.add(chunk);
         received += chunk.length;
-        onProgress?.call(
-            total != null && total > 0 ? received / total : null, label);
+        onProgress?.call(total != null && total > 0 ? received / total : null,
+            InstallStage.downloading);
       }
     } finally {
       await sink.close();
@@ -230,7 +232,7 @@ class BinaryManager {
   /// basename is in [wanted] (placed flat in the bin dir), deletes the rest.
   Future<void> _extractPicking(String archivePath, Set<String> wanted,
       InstallProgress? onProgress) async {
-    onProgress?.call(null, 'Unpacking');
+    onProgress?.call(null, InstallStage.unpacking);
     final dir = (await binDir()).path;
     final scratch = p.join(dir, '.extract-${DateTime.now().microsecondsSinceEpoch}');
     try {

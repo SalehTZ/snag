@@ -4,7 +4,8 @@ import 'motion.dart';
 
 /// Material 3 Expressive, tuned: rounder shapes, bolder type, spring motion.
 abstract final class AppTheme {
-  static const fontFamily = 'Figtree';
+  static const latinFont = 'Figtree';
+  static const persianFont = 'Vazirmatn';
 
   /// Shape scale (M3 Expressive extends the corner set up to 48dp).
   static const radiusSm = 12.0;
@@ -19,15 +20,20 @@ abstract final class AppTheme {
         dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
       );
 
-  static ThemeData build(ColorScheme scheme) {
+  /// [cursive] is true for scripts like Persian, whose joined letters break
+  /// under the negative letter-spacing used for Latin display type.
+  static ThemeData build(ColorScheme scheme, {bool cursive = false}) {
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      fontFamily: fontFamily,
+      fontFamily: cursive ? persianFont : latinFont,
+      // Titles in other scripts (a Persian video in an English UI) still
+      // get a designed font instead of a random system fallback.
+      fontFamilyFallback: cursive ? const [latinFont] : const [persianFont],
       brightness: scheme.brightness,
     );
     final text = base.textTheme;
-    final textTheme = text.copyWith(
+    final latinTheme = text.copyWith(
       displayLarge: text.displayLarge?.copyWith(
           fontWeight: FontWeight.w800, letterSpacing: -1.5, height: 1.0),
       displayMedium: text.displayMedium?.copyWith(
@@ -46,6 +52,22 @@ abstract final class AppTheme {
       labelLarge: text.labelLarge?.copyWith(fontWeight: FontWeight.w700),
       labelMedium: text.labelMedium?.copyWith(fontWeight: FontWeight.w600),
     );
+    final textTheme = cursive
+        ? latinTheme.apply(fontFamily: persianFont).copyWith(
+            displayLarge: latinTheme.displayLarge
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0, height: 1.3),
+            displayMedium: latinTheme.displayMedium
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0, height: 1.3),
+            displaySmall: latinTheme.displaySmall
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0),
+            headlineLarge: latinTheme.headlineLarge
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0),
+            headlineMedium: latinTheme.headlineMedium
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0),
+            headlineSmall: latinTheme.headlineSmall
+                ?.copyWith(fontFamily: persianFont, letterSpacing: 0),
+          )
+        : latinTheme;
 
     final pill = WidgetStatePropertyAll<OutlinedBorder>(
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)));

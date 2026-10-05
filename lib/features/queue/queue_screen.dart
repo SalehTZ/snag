@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format.dart';
+import '../../l10n/l10n.dart';
 import '../../core/platform_actions.dart';
 import '../../core/theme/motion.dart';
 import '../../engine/models.dart';
@@ -25,49 +25,48 @@ class QueueScreen extends ConsumerWidget {
     final finished = tasks.where((t) => t.isFinished).toList().reversed.toList();
     final failed = finished.where((t) => t.status == TaskStatus.failed).length;
     final compact = MediaQuery.sizeOf(context).width < 600;
+    final l = context.l10n;
 
     return Scaffold(
       appBar: PageHeader(
-        title: 'Queue',
+        title: l.queueTitle,
         actions: [
           if (failed > 0)
             compact
                 ? IconButton(
-                    tooltip: 'Retry failed',
+                    tooltip: l.queueRetryFailed(failed),
                     onPressed: manager.retryAllFailed,
                     icon: const Icon(Icons.refresh_rounded),
                   )
                 : TextButton.icon(
                     onPressed: manager.retryAllFailed,
                     icon: const Icon(Icons.refresh_rounded),
-                    label: Text(
-                        failed == 1 ? 'Retry failed' : 'Retry $failed failed'),
+                    label: Text(l.queueRetryFailed(failed)),
                   ),
           if (finished.isNotEmpty)
             compact
                 ? IconButton(
-                    tooltip: 'Clear finished',
+                    tooltip: l.queueClearFinished,
                     onPressed: manager.clearFinished,
                     icon: const Icon(Icons.done_all_rounded),
                   )
                 : TextButton.icon(
                     onPressed: manager.clearFinished,
                     icon: const Icon(Icons.done_all_rounded),
-                    label: const Text('Clear finished'),
+                    label: Text(l.queueClearFinished),
                   ),
         ],
       ),
       body: tasks.isEmpty
           ? EmptyState(
               icon: Icons.downloading_rounded,
-              title: 'All caught up',
-              body: 'Nothing is downloading right now. Paste a link on the '
-                  'Snag tab and it will show up here.',
+              title: l.queueEmptyTitle,
+              body: l.queueEmptyBody,
               action: FilledButton.tonalIcon(
                 onPressed: () =>
                     ref.read(tabProvider.notifier).go(AppTab.home),
                 icon: const Icon(Icons.add_link_rounded),
-                label: const Text('Paste a link'),
+                label: Text(l.queuePasteLink),
               ),
             )
           : ReadableWidth(
@@ -76,15 +75,15 @@ class QueueScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 32),
                 children: [
                   if (active.isNotEmpty) ...[
-                    SectionHeader('Downloading (${active.length})'),
+                    SectionHeader(l.queueDownloading(active.length)),
                     for (final t in active) TaskRow(task: t),
                   ],
                   if (waiting.isNotEmpty) ...[
-                    SectionHeader('Waiting (${waiting.length})'),
+                    SectionHeader(l.queueWaiting(waiting.length)),
                     for (final t in waiting) TaskRow(task: t),
                   ],
                   if (finished.isNotEmpty) ...[
-                    SectionHeader('Finished (${finished.length})'),
+                    SectionHeader(l.queueFinished(finished.length)),
                     for (final t in finished) TaskRow(task: t),
                   ],
                 ],
@@ -128,13 +127,17 @@ class TaskRow extends ConsumerWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(task.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall),
+              SizedBox(
+                width: double.infinity,
+                child: Text(task.title,
+                    textDirection: contentDirection(task.title),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall),
+              ),
               const SizedBox(height: 4),
               Text(
-                _statusLine(task),
+                _statusLine(context, task),
                 maxLines: task.status == TaskStatus.failed ? 3 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -149,20 +152,21 @@ class TaskRow extends ConsumerWidget {
             ]),
           ),
           const SizedBox(width: 8),
-          ..._actions(context, manager),
+          ..._actions(context, manager, context.l10n),
         ]),
       ),
     );
   }
 
-  List<Widget> _actions(BuildContext context, DownloadManager manager) {
+  List<Widget> _actions(
+      BuildContext context, DownloadManager manager, AppLocalizations l) {
     switch (task.status) {
       case TaskStatus.queued:
       case TaskStatus.running:
       case TaskStatus.processing:
         return [
           IconButton(
-            tooltip: 'Cancel',
+            tooltip: l.commonCancel,
             onPressed: () => manager.cancel(task.id),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -171,12 +175,12 @@ class TaskRow extends ConsumerWidget {
         return [
           if (task.filePath != null)
             IconButton.filledTonal(
-              tooltip: 'Open',
+              tooltip: l.commonOpen,
               onPressed: () => _open(context),
               icon: const Icon(Icons.play_arrow_rounded),
             ),
           IconButton(
-            tooltip: 'Remove from queue',
+            tooltip: l.queueRemove,
             onPressed: () => manager.remove(task.id),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -185,12 +189,12 @@ class TaskRow extends ConsumerWidget {
       case TaskStatus.cancelled:
         return [
           IconButton.filledTonal(
-            tooltip: 'Retry',
+            tooltip: l.commonRetry,
             onPressed: () => manager.retry(task.id),
             icon: const Icon(Icons.refresh_rounded),
           ),
           IconButton(
-            tooltip: 'Remove from queue',
+            tooltip: l.queueRemove,
             onPressed: () => manager.remove(task.id),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -201,37 +205,39 @@ class TaskRow extends ConsumerWidget {
   Future<void> _open(BuildContext context) async {
     final ok = await PlatformActions.openFile(task.filePath!);
     if (!ok && context.mounted) {
-      showSnack(context, 'The file was moved or deleted.');
+      showSnack(context, context.l10n.commonFileMissing);
     }
   }
 
-  static String _statusLine(DownloadTask t) {
+  static String _statusLine(BuildContext context, DownloadTask t) {
+    final l = context.l10n;
+    final fmt = context.fmt;
     switch (t.status) {
       case TaskStatus.queued:
-        return 'Waiting · ${t.spec.summary}';
+        return l.statusWaiting(l.summary(t.spec));
       case TaskStatus.processing:
-        return t.stage ?? 'Processing';
+        return l.stage(t.stage);
       case TaskStatus.running:
         final p = t.progress;
-        if (p == null) return 'Starting · ${t.spec.summary}';
+        if (p == null) return l.statusStarting(l.summary(t.spec));
         final parts = <String>[
-          if (p.fraction != null) '${(p.fraction! * 100).toStringAsFixed(0)}%',
+          if (p.fraction != null) fmt.percent(p.fraction!),
           if (p.total != null)
-            '${formatBytes(p.downloaded)} of ${formatBytes(p.total)}'
+            l.progressOf(fmt.bytes(p.downloaded), fmt.bytes(p.total))
           else if (p.downloaded != null)
-            formatBytes(p.downloaded),
-          if (p.speed != null) formatSpeed(p.speed),
-          if (p.eta != null) '${formatEta(p.eta)} left',
+            fmt.bytes(p.downloaded),
+          if (p.speed != null) fmt.speed(p.speed),
+          if (p.eta != null) l.timeLeft(fmt.eta(p.eta)),
         ];
         return parts.join(' · ');
       case TaskStatus.completed:
         return t.filePath == null
-            ? 'Done'
-            : 'Saved · ${t.spec.summary}';
+            ? l.statusDone
+            : l.statusSaved(l.summary(t.spec));
       case TaskStatus.failed:
-        return t.error ?? 'Failed';
+        return t.failure == null ? l.statusFailed : l.engineError(t.failure!);
       case TaskStatus.cancelled:
-        return 'Cancelled';
+        return l.statusCancelled;
     }
   }
 
@@ -284,6 +290,7 @@ class _TaskDetails extends ConsumerWidget {
         .firstOrNull;
     if (task == null) return const SizedBox(height: 120);
     final theme = Theme.of(context);
+    final l = context.l10n;
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.6,
@@ -292,42 +299,49 @@ class _TaskDetails extends ConsumerWidget {
         controller: scroll,
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         children: [
-          SelectableText(task.title, style: theme.textTheme.titleLarge),
+          SelectableText(task.title,
+              textDirection: contentDirection(task.title),
+              style: theme.textTheme.titleLarge),
           const SizedBox(height: 4),
           SelectableText(task.spec.url,
+              textDirection: TextDirection.ltr,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 16),
           if (task.status == TaskStatus.failed)
             ErrorPanel(
-              message: task.error ?? 'Failed',
-              details: task.errorDetails,
+              message: task.failure == null
+                  ? l.statusFailed
+                  : l.engineError(task.failure!),
+              details: task.failure == null
+                  ? task.log.join('\n')
+                  : l.errorDetails(task.failure!),
               onRetry: () {
                 ref.read(downloadManagerProvider.notifier).retry(task.id);
                 Navigator.pop(context);
               },
             ),
           if (task.filePath != null) ...[
-            Text('Saved to', style: theme.textTheme.titleSmall),
+            Text(l.queueSavedTo, style: theme.textTheme.titleSmall),
             const SizedBox(height: 4),
-            SelectableText(task.filePath!),
+            SelectableText(task.filePath!, textDirection: TextDirection.ltr),
             const SizedBox(height: 8),
             Wrap(spacing: 8, children: [
               FilledButton.tonalIcon(
                 onPressed: () => PlatformActions.openFile(task.filePath!),
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('Open'),
+                label: Text(l.commonOpen),
               ),
               if (PlatformActions.canRevealInFolder)
                 OutlinedButton.icon(
                   onPressed: () => PlatformActions.revealInFolder(task.filePath!),
                   icon: const Icon(Icons.folder_open_rounded),
-                  label: const Text('Show in folder'),
+                  label: Text(l.commonShowInFolder),
                 ),
             ]),
           ],
           const SizedBox(height: 20),
-          Text('Log', style: theme.textTheme.titleSmall),
+          Text(l.queueLog, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(12),
@@ -336,7 +350,9 @@ class _TaskDetails extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: SelectableText(
-              task.log.isEmpty ? 'No output yet.' : task.log.join('\n'),
+              task.log.isEmpty ? l.queueNoOutput : task.log.join('\n'),
+              textDirection:
+                  task.log.isEmpty ? null : TextDirection.ltr,
               style: monoStyle.copyWith(fontSize: 12, height: 1.4),
             ),
           ),

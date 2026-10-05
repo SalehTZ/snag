@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:snag/engine/output_parser.dart';
+import 'package:snag/engine/ytdlp_engine.dart';
+import 'package:snag/l10n/l10n.dart';
 
 void main() {
   // Captured verbatim from yt-dlp 2026.03.17.
@@ -41,7 +44,6 @@ void main() {
     e as PostprocessEvent;
     expect(e.name, 'Merger');
     expect(e.status, 'started');
-    expect(e.label, 'Merging video and audio');
   });
 
   test('info and file lines', () {
@@ -67,12 +69,29 @@ void main() {
     expect(EngineEvent.parse(''), isA<LogEvent>());
   });
 
-  test('friendly errors', () {
+  test('errors are classified so the UI can localize them', () {
     expect(
-      friendlyError("[youtube] x: Sign in to confirm you’re not a bot. Use --cookies"),
-      contains('cookies'),
+      classifyError("[youtube] x: Sign in to confirm you’re not a bot. Use --cookies"),
+      EngineErrorKind.botCheck,
     );
-    expect(friendlyError('Unsupported URL: https://a.b'), contains('not supported'));
-    expect(friendlyError('something odd'), 'something odd');
+    expect(classifyError('Unsupported URL: https://a.b'),
+        EngineErrorKind.unsupportedUrl);
+    expect(classifyError('HTTP Error 429: Too Many Requests'),
+        EngineErrorKind.rateLimited);
+    expect(classifyError('something odd'), EngineErrorKind.unknown);
+  });
+
+  test('unknown errors fall back to yt-dlp\'s own words', () {
+    final l = lookupAppLocalizations(const Locale('fa'));
+    final e = EngineException.fromYtDlp('weird thing happened');
+    expect(l.engineError(e), 'weird thing happened');
+    expect(l.engineError(EngineException(EngineErrorKind.network)),
+        l.errorNetwork);
+  });
+
+  test('post-processor names map to localized stages', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(en.stage('Merger'), 'Merging video and audio');
+    expect(en.stage('SomethingNew'), en.stageProcessing);
   });
 }

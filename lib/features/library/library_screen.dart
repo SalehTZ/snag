@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format.dart';
+import '../../l10n/l10n.dart';
 import '../../core/platform_actions.dart';
 import '../../data/providers.dart';
 import '../../data/records.dart';
@@ -55,31 +55,31 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final all = ref.watch(historyProvider);
     final items = _apply(all);
     final filtering = _search.text.isNotEmpty || _filter != _Filter.all;
+    final l = context.l10n;
 
     Widget body;
     if (all.isEmpty) {
       // First run: invite, don't scold.
       body = EmptyState(
         icon: Icons.video_library_rounded,
-        title: 'Your library is empty',
-        body: 'Everything you download lands here, ready to play, share or '
-            'grab again.',
+        title: l.libraryEmptyTitle,
+        body: l.libraryEmptyBody,
         action: FilledButton.tonalIcon(
           onPressed: () => ref.read(tabProvider.notifier).go(AppTab.home),
           icon: const Icon(Icons.add_link_rounded),
-          label: const Text('Snag your first video'),
+          label: Text(l.libraryFirstVideo),
         ),
       );
     } else if (items.isEmpty) {
       body = EmptyState(
         icon: Icons.search_off_rounded,
-        title: 'No matches',
+        title: l.libraryNoMatches,
         body: _search.text.isEmpty
-            ? 'Nothing in this category yet.'
-            : 'Nothing matches "${_search.text.trim()}".',
+            ? l.libraryNothingInCategory
+            : l.libraryNothingMatches(_search.text.trim()),
         action: OutlinedButton(
           onPressed: _clearFilters,
-          child: const Text('Clear search and filters'),
+          child: Text(l.libraryClearFilters),
         ),
       );
     } else {
@@ -92,12 +92,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       appBar: PageHeader(
-        title: 'Library',
+        title: l.libraryTitle,
         actions: [
           if (all.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Text(plural(all.length, 'download'),
+              padding: const EdgeInsetsDirectional.only(end: 12),
+              child: Text(l.libraryCount(all.length),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
@@ -112,15 +112,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               child: Column(children: [
                 SearchBar(
                   controller: _search,
-                  hintText: 'Search titles, channels, links',
+                  hintText: l.librarySearchHint,
                   leading: const Padding(
-                    padding: EdgeInsets.only(left: 8),
+                    padding: EdgeInsetsDirectional.only(start: 8),
                     child: Icon(Icons.search_rounded),
                   ),
                   trailing: [
                     if (_search.text.isNotEmpty)
                       IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: l.libraryClearSearch,
                         onPressed: () => setState(_search.clear),
                         icon: const Icon(Icons.close_rounded),
                       ),
@@ -135,9 +135,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     for (final f in _Filter.values)
                       ChoiceChip(
                         label: Text(switch (f) {
-                          _Filter.all => 'All',
-                          _Filter.video => 'Video',
-                          _Filter.audio => 'Audio',
+                          _Filter.all => l.filterAll,
+                          _Filter.video => l.filterVideo,
+                          _Filter.audio => l.filterAudio,
                         }),
                         selected: _filter == f,
                         onSelected: (_) => setState(() => _filter = f),
@@ -145,7 +145,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     if (filtering)
                       ActionChip(
                         avatar: const Icon(Icons.filter_alt_off_rounded),
-                        label: const Text('Clear'),
+                        label: Text(l.commonClear),
                         onPressed: _clearFilters,
                       ),
                   ]),
@@ -171,11 +171,13 @@ class _HistoryRow extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final compact = MediaQuery.sizeOf(context).width < 600;
     final isAudio = item.spec.mode == DownloadMode.audio;
+    final l = context.l10n;
+    final fmt = context.fmt;
 
     final meta = [
       if (item.meta.uploader != null) item.meta.uploader!,
-      if (item.fileSize != null) formatBytes(item.fileSize),
-      formatRelative(item.finishedAt),
+      if (item.fileSize != null) fmt.bytes(item.fileSize),
+      fmt.relative(item.finishedAt),
     ].join(' · ');
 
     return InkWell(
@@ -195,10 +197,14 @@ class _HistoryRow extends ConsumerWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Tooltip(
                 message: item.title,
-                child: Text(item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(item.title,
+                      textDirection: contentDirection(item.title),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall),
+                ),
               ),
               const SizedBox(height: 4),
               Text(meta,
@@ -214,7 +220,7 @@ class _HistoryRow extends ConsumerWidget {
                     size: 14, color: scheme.primary),
                 const SizedBox(width: 4),
                 Flexible(
-                  child: Text(item.spec.summary,
+                  child: Text(l.summary(item.spec),
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall
                           ?.copyWith(color: scheme.primary)),
@@ -223,7 +229,7 @@ class _HistoryRow extends ConsumerWidget {
             ]),
           ),
           PopupMenuButton<_RowAction>(
-            tooltip: 'More',
+            tooltip: l.commonMore,
             icon: const Icon(Icons.more_vert_rounded),
             onSelected: (a) => switch (a) {
               _RowAction.open => LibraryActions.open(context, ref, item),
@@ -236,36 +242,37 @@ class _HistoryRow extends ConsumerWidget {
             },
             itemBuilder: (context) => [
               if (item.filePath != null)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _RowAction.open,
                   child: ListTile(
-                      leading: Icon(Icons.play_arrow_rounded),
-                      title: Text('Open')),
+                      leading: const Icon(Icons.play_arrow_rounded),
+                      title: Text(l.commonOpen)),
                 ),
               if (item.filePath != null && PlatformActions.canRevealInFolder)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _RowAction.reveal,
                   child: ListTile(
-                      leading: Icon(Icons.folder_open_rounded),
-                      title: Text('Show in folder')),
+                      leading: const Icon(Icons.folder_open_rounded),
+                      title: Text(l.commonShowInFolder)),
                 ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _RowAction.again,
                 child: ListTile(
-                    leading: Icon(Icons.replay_rounded),
-                    title: Text('Download again')),
+                    leading: const Icon(Icons.replay_rounded),
+                    title: Text(l.commonDownloadAgain)),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _RowAction.copy,
                 child: ListTile(
-                    leading: Icon(Icons.link_rounded), title: Text('Copy link')),
+                    leading: const Icon(Icons.link_rounded),
+                    title: Text(l.commonCopyLink)),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _RowAction.remove,
                 child: ListTile(
-                    leading: Icon(Icons.playlist_remove_rounded),
-                    title: Text('Remove from library')),
+                    leading: const Icon(Icons.playlist_remove_rounded),
+                    title: Text(l.libraryRemove)),
               ),
               if (item.filePath != null)
                 PopupMenuItem(
@@ -273,7 +280,7 @@ class _HistoryRow extends ConsumerWidget {
                   child: ListTile(
                     leading: Icon(Icons.delete_outline_rounded,
                         color: scheme.error),
-                    title: Text('Delete file',
+                    title: Text(l.libraryDeleteFile,
                         style: TextStyle(color: scheme.error)),
                   ),
                 ),

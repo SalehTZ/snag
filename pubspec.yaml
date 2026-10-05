@@ -13,10 +13,14 @@ dependencies:
   file_picker: ^13.1.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_riverpod: ^3.4.3
   http: ^1.6.0
+  intl: any
   path: ^1.9.1
   path_provider: ^2.1.6
+  shamsi_date: ^1.1.1
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.3
   window_manager: ^0.5.2
@@ -31,8 +35,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/icon/icon.png
+    - assets/fonts/Figtree-OFL.txt
+    - assets/fonts/Vazirmatn-OFL.txt
   fonts:
     - family: Figtree
       fonts:
@@ -45,6 +52,18 @@ flutter:
         - asset: assets/fonts/Figtree-Bold.ttf
           weight: 700
         - asset: assets/fonts/Figtree-ExtraBold.ttf
+          weight: 800
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/Vazirmatn-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Vazirmatn-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Vazirmatn-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Vazirmatn-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Vazirmatn-ExtraBold.ttf
           weight: 800
 
 flutter_launcher_icons:

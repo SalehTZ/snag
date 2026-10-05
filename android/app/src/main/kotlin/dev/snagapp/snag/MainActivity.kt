@@ -18,6 +18,7 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private var platform: MethodChannel? = null
     private var pendingShare: String? = null
+    private var pendingPermission: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -37,6 +38,8 @@ class MainActivity : FlutterActivity() {
                         pendingShare = null
                     }
                     "openFile" -> result.success(openFile(call.argument<String>("path")!!))
+                    "notificationsAllowed" -> result.success(notificationsAllowed())
+                    "requestNotifications" -> requestNotifications(result)
                     else -> result.notImplemented()
                 }
             }
@@ -77,18 +80,43 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    /** Asked lazily, the first time a download actually starts. */
+    private fun notificationsAllowed(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private fun requestNotifications(result: MethodChannel.Result) {
+        if (notificationsAllowed()) return result.success(true)
+        pendingPermission?.success(false)
+        pendingPermission = result
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFY_REQUEST)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NOTIFY_REQUEST) {
+            pendingPermission?.success(notificationsAllowed())
+            pendingPermission = null
+        }
+    }
+
+    /**
+     * Android 9 and older need storage permission to write to Download/.
+     * Notifications are asked once during onboarding instead.
+     */
     private fun requestRuntimePermissions() {
-        val wanted = mutableListOf<String>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            wanted += Manifest.permission.POST_NOTIFICATIONS
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) return
+        val storage = Manifest.permission.WRITE_EXTERNAL_STORAGE
+        if (ContextCompat.checkSelfPermission(this, storage) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(storage), 7)
         }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            wanted += Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }
-        val missing = wanted.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isNotEmpty()) requestPermissions(missing.toTypedArray(), 7)
+    }
+
+    companion object {
+        private const val NOTIFY_REQUEST = 8
     }
 }

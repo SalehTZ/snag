@@ -50,7 +50,7 @@ void main() {
   tearDownAll(() => root.deleteSync(recursive: true));
 
   test('installs the latest yt-dlp release into app support', () async {
-    final stages = <String>{};
+    final stages = <InstallStage>{};
     double? last;
     await bins.install(Component.ytDlp, onProgress: (f, stage) {
       stages.add(stage);

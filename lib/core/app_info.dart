@@ -6,6 +6,7 @@ abstract final class AppInfo {
 
   static const repoUrl = 'https://github.com/SalehTZ/snag';
   static const issuesUrl = '$repoUrl/issues';
+  static const translateUrl = '$repoUrl/blob/main/TRANSLATING.md';
   static const sponsorUrl = 'https://github.com/sponsors/SalehTZ';
   static const kofiUrl = 'https://ko-fi.com/salehtz';
 

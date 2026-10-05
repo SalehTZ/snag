@@ -11,6 +11,7 @@ import '../../core/theme/theme.dart';
 import '../../data/providers.dart';
 import '../../engine/models.dart';
 import '../../engine/ytdlp_engine.dart';
+import '../../l10n/l10n.dart';
 import '../../shell.dart';
 import '../../widgets/common.dart';
 import '../../widgets/shapes.dart';
@@ -83,7 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final url = extractUrl(data?.text) ?? data?.text?.trim();
     if (url == null || url.isEmpty) {
-      if (mounted) showSnack(context, 'The clipboard has no link in it.');
+      if (mounted) showSnack(context, context.l10n.homeClipboardEmpty);
       return;
     }
     _controller.text = url;
@@ -99,11 +100,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Future<void> _fetch() async {
     final url = _url;
     if (url == null) {
-      setState(() => _error = EngineException(
-          'That does not look like a link. Paste a full address, like '
-          'https://youtube.com/watch?v=...'));
+      setState(() => _error = EngineException(EngineErrorKind.invalidLink));
       return;
     }
+    // Get the keyboard out of the way of the sheet and the nav bar.
+    _focus.unfocus();
     final request = ++_request;
     setState(() {
       _fetching = true;
@@ -125,7 +126,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (!mounted || request != _request) return;
       setState(() {
         _fetching = false;
-        _error = e is EngineException ? e : EngineException('$e');
+        _error = e is EngineException
+            ? e
+            : EngineException(EngineErrorKind.unknown, raw: '$e');
       });
     }
   }
@@ -142,6 +145,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _fetch();
       return;
     }
+    _focus.unfocus();
     final s = ref.read(settingsProvider);
     ref.read(downloadManagerProvider.notifier).enqueue(
           DownloadSpec(
@@ -158,8 +162,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _clipboardUrl = null;
       _error = null;
     });
-    showSnack(context, 'Added to the queue',
-        actionLabel: 'View',
+    showSnack(context, context.l10n.commonAddedToQueue,
+        actionLabel: context.l10n.commonView,
         onAction: () => ref.read(tabProvider.notifier).go(AppTab.queue));
   }
 
@@ -169,7 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final url = extractUrl(text);
     setState(() => _dragging = false);
     if (url == null) {
-      showSnack(context, 'Drop a link from your browser, not a file.');
+      showSnack(context, context.l10n.homeDropNotLink);
       return;
     }
     _controller.text = url;
@@ -184,6 +188,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l = context.l10n;
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 600;
     final hasText = _controller.text.trim().isNotEmpty;
@@ -198,7 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             SizedBox(height: compact ? 40 : 88),
             Text.rich(
               TextSpan(children: [
-                const TextSpan(text: 'Snag it'),
+                TextSpan(text: l.homeHeadline),
                 TextSpan(text: '.', style: TextStyle(color: scheme.primary)),
               ]),
               style: (compact
@@ -208,8 +213,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              'Paste a link from YouTube, Instagram, TikTok, X, SoundCloud, '
-              'Vimeo and well over a thousand other sites.',
+              l.homeSubtitle,
               style: theme.textTheme.titleMedium?.copyWith(
                   color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
             ),
@@ -248,7 +252,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               const SizedBox(width: 12),
               Tooltip(
-                message: 'Download now with your default settings',
+                message: l.homeQuickDownload,
                 child: SizedBox.square(
                   dimension: 64,
                   child: IconButton.filledTonal(
@@ -271,8 +275,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   : Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: ErrorPanel(
-                        message: _error!.message,
-                        details: _error!.details,
+                        message: l.engineError(_error!),
+                        details: l.errorDetails(_error!),
                         onRetry: _fetch,
                       ),
                     ),
@@ -285,7 +289,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 onPressed: () =>
                     PlatformActions.openLink(AppInfo.supportedSitesUrl),
                 icon: const Icon(Icons.public_rounded, size: 18),
-                label: const Text('See every supported site'),
+                label: Text(l.homeSupportedSites),
               ),
             ),
             const SizedBox(height: 32),
@@ -319,7 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   iconColor: scheme.onPrimary,
                 ),
                 const SizedBox(height: 24),
-                Text('Drop the link to snag it',
+                Text(l.homeDropTitle,
                     style: theme.textTheme.headlineMedium
                         ?.copyWith(color: scheme.onPrimaryContainer)),
               ]),
@@ -362,9 +366,12 @@ class _UrlField extends StatelessWidget {
       autocorrect: false,
       enableSuggestions: false,
       onSubmitted: (_) => onSubmit(),
+      // Links are always left-to-right, even in an RTL UI.
+      textDirection: TextDirection.ltr,
       style: theme.textTheme.titleMedium,
       decoration: InputDecoration(
         hintText: 'https://...',
+        hintTextDirection: TextDirection.ltr,
         prefixIcon: const Padding(
           padding: EdgeInsetsDirectional.only(start: 20, end: 8),
           child: Icon(Icons.link_rounded),
@@ -373,14 +380,14 @@ class _UrlField extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(end: 8),
           child: hasText
               ? IconButton(
-                  tooltip: 'Clear',
+                  tooltip: context.l10n.commonClear,
                   onPressed: enabled ? onClear : null,
                   icon: const Icon(Icons.close_rounded),
                 )
               : TextButton.icon(
                   onPressed: enabled ? onPaste : null,
                   icon: const Icon(Icons.content_paste_rounded, size: 18),
-                  label: const Text('Paste'),
+                  label: Text(context.l10n.homePaste),
                 ),
         ),
         contentPadding:
@@ -420,7 +427,7 @@ class _ClipboardSuggestion extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   onTap: onUse,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 4, 8),
                     child: Row(children: [
                       Icon(Icons.content_paste_go_rounded,
                           color: scheme.onTertiaryContainer, size: 20),
@@ -429,11 +436,12 @@ class _ClipboardSuggestion extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Link in your clipboard',
+                            Text(context.l10n.homeClipboardTitle,
                                 style: theme.textTheme.labelLarge?.copyWith(
                                     color: scheme.onTertiaryContainer)),
                             Text(
                               url!,
+                              textDirection: TextDirection.ltr,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
@@ -443,7 +451,7 @@ class _ClipboardSuggestion extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Dismiss',
+                        tooltip: context.l10n.commonDismiss,
                         onPressed: onDismiss,
                         icon: Icon(Icons.close_rounded,
                             color: scheme.onTertiaryContainer),
@@ -496,19 +504,19 @@ class _SnagButton extends StatelessWidget {
                   children: [
                     MorphingLoader(size: 26, color: scheme.onPrimary),
                     const SizedBox(width: 14),
-                    const Flexible(
-                      child: Text('Looking it up... tap to cancel',
+                    Flexible(
+                      child: Text(context.l10n.homeLookingUp,
                           textAlign: TextAlign.center),
                     ),
                   ],
                 )
-              : const Row(
-                  key: ValueKey('idle'),
+              : Row(
+                  key: const ValueKey('idle'),
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.south_rounded),
-                    SizedBox(width: 10),
-                    Text('Snag'),
+                    const Icon(Icons.south_rounded),
+                    const SizedBox(width: 10),
+                    Text(context.l10n.homeSnagButton),
                   ],
                 ),
         ),

@@ -24,8 +24,7 @@ class DownloadTask {
     this.progress,
     this.stage,
     this.filePath,
-    this.error,
-    this.errorDetails,
+    this.failure,
     this.log = const [],
   });
 
@@ -36,11 +35,12 @@ class DownloadTask {
   final TaskStatus status;
   final ProgressUpdate? progress;
 
-  /// Human label of the current post-processing step.
+  /// Name of the yt-dlp post-processor that is running (e.g. "Merger").
   final String? stage;
   final String? filePath;
-  final String? error;
-  final String? errorDetails;
+
+  /// Why it failed; localized by the UI.
+  final EngineException? failure;
   final List<String> log;
 
   String get title => meta.title ?? spec.url;
@@ -56,8 +56,7 @@ class DownloadTask {
     ProgressUpdate? Function()? progress,
     String? Function()? stage,
     String? filePath,
-    String? Function()? error,
-    String? Function()? errorDetails,
+    EngineException? Function()? failure,
     List<String>? log,
   }) {
     return DownloadTask(
@@ -69,8 +68,7 @@ class DownloadTask {
       progress: progress != null ? progress() : this.progress,
       stage: stage != null ? stage() : this.stage,
       filePath: filePath ?? this.filePath,
-      error: error != null ? error() : this.error,
-      errorDetails: errorDetails != null ? errorDetails() : this.errorDetails,
+      failure: failure != null ? failure() : this.failure,
       log: log ?? this.log,
     );
   }
@@ -132,8 +130,7 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
         status: TaskStatus.queued,
         progress: () => null,
         stage: () => null,
-        error: () => null,
-        errorDetails: () => null,
+        failure: () => null,
         log: const [],
       ),
     );
@@ -188,8 +185,8 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
       outputDir = settings.downloadDir ?? await _engine.defaultDownloadDir();
       await Directory(outputDir).create(recursive: true);
     } catch (e) {
-      _fail(task.id, EngineException('Cannot write to the download folder. '
-          'Pick another one in Settings.', details: '$e'));
+      _fail(task.id,
+          EngineException(EngineErrorKind.folderNotWritable, details: '$e'));
       _pump();
       return;
     }
@@ -243,7 +240,7 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
       case PostprocessEvent():
         _patch(id, (t) => t.copyWith(
               status: TaskStatus.processing,
-              stage: () => event.label,
+              stage: () => event.name,
             ));
       case MetaEvent(:final meta):
         // yt-dlp's own metadata is authoritative; keep ours as fallback.
@@ -261,13 +258,17 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
   }
 
   void _fail(String id, Object e) {
-    final ex = e is EngineException ? e : EngineException('$e');
-    _patch(id, (t) => t.copyWith(
-          status: TaskStatus.failed,
-          stage: () => null,
-          error: () => ex.message,
-          errorDetails: () => ex.details ?? t.log.join('\n'),
-        ));
+    _patch(id, (t) {
+      final ex = e is EngineException
+          ? e
+          : EngineException(EngineErrorKind.unknown,
+              raw: '$e', details: t.log.join('\n'));
+      return t.copyWith(
+        status: TaskStatus.failed,
+        stage: () => null,
+        failure: () => ex,
+      );
+    });
   }
 
   Future<void> _complete(DownloadTask task) async {

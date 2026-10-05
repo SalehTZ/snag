@@ -1,0 +1,704 @@
+{
+  "@@locale": "en",
+  "languageNativeName": "English",
+  "@languageNativeName": {
+    "description": "The name of THIS language, written in itself (e.g. 'Deutsch', 'فارسی'). Shown in the language picker."
+  },
+  "navSnag": "Snag",
+  "@navSnag": {
+    "description": "Bottom navigation: the main download tab. 'Snag' is the app name; keep it or transliterate."
+  },
+  "navQueue": "Queue",
+  "navLibrary": "Library",
+  "navSettings": "Settings",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonClear": "Clear",
+  "commonDismiss": "Dismiss",
+  "commonMore": "More",
+  "commonOpen": "Open",
+  "commonView": "View",
+  "commonUndo": "Undo",
+  "commonNone": "None",
+  "commonRetry": "Retry",
+  "commonTryAgain": "Try again",
+  "commonShowDetails": "Show details",
+  "commonHideDetails": "Hide details",
+  "commonCopyLog": "Copy log",
+  "commonShowInFolder": "Show in folder",
+  "commonDownloadAgain": "Download again",
+  "commonCopyLink": "Copy link",
+  "commonLinkCopied": "Link copied",
+  "commonFileMissing": "The file was moved or deleted.",
+  "commonAddedToQueue": "Added to the queue",
+  "itemsAddedToQueue": "{count, plural, =1{1 item added to the queue} other{{count} items added to the queue}}",
+  "@itemsAddedToQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "itemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "homeHeadline": "Snag it",
+  "@homeHeadline": {
+    "description": "Big headline on the home screen. The app adds a colored period after it. Short and playful: 'grab it!'"
+  },
+  "homeSubtitle": "Paste a link from YouTube, Instagram, TikTok, X, SoundCloud, Vimeo and well over a thousand other sites.",
+  "homePaste": "Paste",
+  "homeClipboardEmpty": "The clipboard has no link in it.",
+  "homeClipboardTitle": "Link in your clipboard",
+  "homeQuickDownload": "Download now with your default settings",
+  "homeSnagButton": "Snag",
+  "@homeSnagButton": {
+    "description": "The main button that looks up a link. 'Snag' means grab; can be translated as a verb like 'Get it'."
+  },
+  "homeLookingUp": "Looking it up... tap to cancel",
+  "homeDropTitle": "Drop the link to snag it",
+  "homeDropNotLink": "Drop a link from your browser, not a file.",
+  "homeSupportedSites": "See every supported site",
+  "homeRecent": "Recently snagged",
+  "homeSeeAll": "See all",
+  "homeInvalidLink": "That does not look like a link. Paste a full address, like https://youtube.com/watch?v=...",
+  "errorBotCheck": "The site wants proof you are human. Add your browser cookies in Settings > Network, then try again.",
+  "errorUnsupportedUrl": "This link is not supported. Check that it points to a video or playlist page.",
+  "errorPrivate": "This video is private or members-only. Cookies from a signed-in browser may help.",
+  "errorSignIn": "This content needs you to be signed in. Add cookies in Settings > Network.",
+  "errorRateLimited": "The site is rate-limiting you. Wait a bit, or use a proxy.",
+  "errorNetwork": "Could not reach the site. Check your connection or proxy.",
+  "errorFfmpegMissing": "ffmpeg is missing, so audio conversion and merging cannot run. Install it from Settings > Components.",
+  "errorFormatUnavailable": "That quality is not available for this video. Try \"Best\".",
+  "errorNotInstalled": "yt\u2060-\u2060dlp is not installed yet. Open Settings > Components to set it up.",
+  "errorNoMedia": "No media found at this link.",
+  "errorUnexpectedOutput": "yt\u2060-\u2060dlp returned something unexpected.",
+  "errorFolderNotWritable": "Cannot write to the download folder. Pick another one in Settings.",
+  "errorEngineStart": "Could not start the download engine.",
+  "errorUnknown": "Something went wrong. The details below may help.",
+  "sheetVideo": "Video",
+  "sheetAudioOnly": "Audio only",
+  "sheetQuality": "Quality",
+  "sheetFormat": "Format",
+  "qualityBest": "Best",
+  "audioOriginal": "Original",
+  "sheetEmbedSubtitles": "Embed subtitles",
+  "sheetSubtitlesWhenAvailable": "When the video has them",
+  "sheetSubtitlesAvailable": "Available: {languages}",
+  "@sheetSubtitlesAvailable": {
+    "placeholders": {
+      "languages": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetLanguagesAndMore": "{languages} and {count} more",
+  "@sheetLanguagesAndMore": {
+    "placeholders": {
+      "languages": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sheetMoreOptions": "More options",
+  "sheetFewerOptions": "Fewer options",
+  "sheetTemplate": "Command template",
+  "sheetTemplateHelper": "Replaces the options above with your own yt\u2060-\u2060dlp flags",
+  "sheetExactFormat": "Exact format",
+  "sheetExactFormatHelp": "For when you know exactly what you want. Overrides the quality above.",
+  "sheetAudioAdded": "audio added automatically",
+  "sheetFormatId": "id {id}",
+  "@sheetFormatId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetUsePreset": "Use the quality preset instead",
+  "sheetPlaylist": "PLAYLIST",
+  "sheetSelectedOf": "{selected} of {total} selected",
+  "@sheetSelectedOf": {
+    "placeholders": {
+      "selected": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sheetSelectAll": "Select all",
+  "sheetSelectNone": "Select none",
+  "sheetDownloadVideo": "Download video",
+  "sheetDownloadAudio": "Download audio",
+  "sheetDownloadTemplate": "Download with template",
+  "sheetDownloadItems": "{count, plural, =1{Download 1 item} other{Download {count} items}}",
+  "@sheetDownloadItems": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sheetSelectSomething": "Select something to download",
+  "summaryVideo": "Video · {quality}",
+  "@summaryVideo": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "summaryAudio": "Audio · {format}",
+  "@summaryAudio": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "summaryFormat": "Format {id}",
+  "@summaryFormat": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "queueTitle": "Queue",
+  "queueRetryFailed": "{count, plural, =1{Retry failed} other{Retry {count} failed}}",
+  "@queueRetryFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "queueClearFinished": "Clear finished",
+  "queueEmptyTitle": "All caught up",
+  "queueEmptyBody": "Nothing is downloading right now. Paste a link on the Snag tab and it will show up here.",
+  "queuePasteLink": "Paste a link",
+  "queueDownloading": "Downloading ({count})",
+  "@queueDownloading": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "queueWaiting": "Waiting ({count})",
+  "@queueWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "queueFinished": "Finished ({count})",
+  "@queueFinished": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "queueRemove": "Remove from queue",
+  "statusWaiting": "Waiting · {summary}",
+  "@statusWaiting": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "statusStarting": "Starting · {summary}",
+  "@statusStarting": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "statusSaved": "Saved · {summary}",
+  "@statusSaved": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "statusDone": "Done",
+  "statusFailed": "Failed",
+  "statusCancelled": "Cancelled",
+  "progressOf": "{done} of {total}",
+  "@progressOf": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "timeLeft": "{time} left",
+  "@timeLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "queueSavedTo": "Saved to",
+  "queueLog": "Log",
+  "queueNoOutput": "No output yet.",
+  "stageMerging": "Merging video and audio",
+  "stageConvertingAudio": "Converting audio",
+  "stageThumbnail": "Embedding thumbnail",
+  "stageMetadata": "Writing metadata",
+  "stageSubtitles": "Embedding subtitles",
+  "stageSponsorBlock": "Cutting sponsor segments",
+  "stageFinishing": "Finishing up",
+  "stageProcessing": "Processing",
+  "libraryTitle": "Library",
+  "libraryCount": "{count, plural, =1{1 download} other{{count} downloads}}",
+  "@libraryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "librarySearchHint": "Search titles, channels, links",
+  "libraryClearSearch": "Clear search",
+  "filterAll": "All",
+  "filterVideo": "Video",
+  "filterAudio": "Audio",
+  "libraryEmptyTitle": "Your library is empty",
+  "libraryEmptyBody": "Everything you download lands here, ready to play, share or grab again.",
+  "libraryFirstVideo": "Snag your first video",
+  "libraryNoMatches": "No matches",
+  "libraryNothingInCategory": "Nothing in this category yet.",
+  "libraryNothingMatches": "Nothing matches \"{query}\".",
+  "@libraryNothingMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryClearFilters": "Clear search and filters",
+  "libraryRemove": "Remove from library",
+  "libraryRemoved": "Removed from the library. The file is still on disk.",
+  "libraryDeleteFile": "Delete file",
+  "libraryDeleteTitle": "Delete this file?",
+  "libraryDeleteBody": "\"{title}\" will be removed from your device. This cannot be undone.",
+  "@libraryDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryKeepIt": "Keep it",
+  "libraryDeleteFailed": "Could not delete the file: {error}",
+  "@libraryDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryDeleted": "File deleted",
+  "timeJustNow": "just now",
+  "timeMinutesAgo": "{count, plural, =1{1 min ago} other{{count} min ago}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "timeYesterday": "yesterday",
+  "unitBytes": "{value} B",
+  "@unitBytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitKB": "{value} KB",
+  "@unitKB": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitMB": "{value} MB",
+  "@unitMB": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitGB": "{value} GB",
+  "@unitGB": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitTB": "{value} TB",
+  "@unitTB": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitPerSecond": "{size}/s",
+  "@unitPerSecond": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "etaSeconds": "{s}s",
+  "@etaSeconds": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "etaMinutes": "{m}m {s}s",
+  "@etaMinutes": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      },
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "etaHours": "{h}h {m}m",
+  "@etaHours": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsHelpTranslate": "Help translate {app}",
+  "@settingsHelpTranslate": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHelpTranslateSubtitle": "Add your language with a single file on GitHub",
+  "settingsDynamicColor": "Colors from your system",
+  "settingsDynamicColorSubtitle": "Match your wallpaper or accent color",
+  "settingsAccentColor": "Accent color",
+  "settingsDownloads": "Downloads",
+  "settingsSaveTo": "Save to",
+  "settingsUseDefaultFolder": "Use the default folder",
+  "settingsOpenFolder": "Open folder",
+  "settingsChooseFolder": "Where should downloads go?",
+  "settingsFileName": "File name",
+  "settingsFileNameTemplate": "File name template",
+  "settingsFileNameHelper": "yt\u2060-\u2060dlp output template, e.g. %(uploader)s - %(title)s.%(ext)s",
+  "settingsDefaultType": "Default type",
+  "settingsDefaultQuality": "Default video quality",
+  "settingsDefaultAudio": "Default audio format",
+  "settingsCompatible": "Prefer formats that play everywhere",
+  "settingsCompatibleSubtitle": "H.264 + AAC in MP4 when available",
+  "settingsConcurrency": "Downloads at the same time",
+  "settingsClipboard": "Spot links in the clipboard",
+  "settingsClipboardSubtitle": "Offer to paste a copied link on the Snag tab",
+  "settingsPlainNames": "Plain file names",
+  "settingsPlainNamesSubtitle": "ASCII only, no spaces or special characters",
+  "settingsExtras": "Extras",
+  "settingsEmbedMetadata": "Embed metadata",
+  "settingsEmbedMetadataSubtitle": "Title, artist, date and description",
+  "settingsEmbedThumbnail": "Embed thumbnail",
+  "settingsEmbedThumbnailSubtitle": "Shows as cover art in players",
+  "settingsEmbedChapters": "Embed chapters",
+  "settingsEmbedSubtitles": "Embed subtitles by default",
+  "settingsSubtitleLanguagesValue": "Languages: {languages}",
+  "@settingsSubtitleLanguagesValue": {
+    "placeholders": {
+      "languages": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSubtitleLanguages": "Subtitle languages",
+  "settingsSubtitleLanguagesHelper": "Comma separated, regex allowed: en.*,fa,de",
+  "settingsSponsorBlock": "SponsorBlock",
+  "settingsSponsorBlockSubtitle": "Skip sponsor segments in YouTube videos",
+  "sponsorOff": "Off",
+  "sponsorMark": "Mark as chapters",
+  "sponsorRemove": "Cut them out",
+  "settingsNetwork": "Network and sign-in",
+  "settingsBrowserCookies": "Use cookies from browser",
+  "settingsBrowserCookiesSubtitle": "Fixes \"sign in to confirm you're not a bot\" and private videos",
+  "settingsCookiesFile": "Cookies file",
+  "settingsCookiesFileHint": "Netscape-format cookies.txt",
+  "settingsCookiesRemove": "Remove cookies file",
+  "settingsCookiesChoose": "Choose cookies.txt",
+  "settingsProxy": "Proxy",
+  "settingsNotSet": "Not set",
+  "settingsProxyHelper": "e.g. socks5://127.0.0.1:1080 or http://host:port",
+  "settingsSpeedLimit": "Speed limit",
+  "settingsUnlimited": "Unlimited",
+  "settingsSpeedLimitHelper": "Bytes per second, e.g. 2M or 500K",
+  "settingsAria2c": "Use aria2c",
+  "settingsAria2cSubtitle": "Faster multi-connection downloads (aria2c must be installed)",
+  "settingsPowerTools": "Power tools",
+  "settingsTemplates": "Command templates",
+  "settingsTemplatesSubtitle": "Saved sets of raw yt\u2060-\u2060dlp flags",
+  "settingsExtraArgs": "Extra arguments",
+  "settingsExtraArgsEmpty": "Added to every download",
+  "settingsExtraArgsHelper": "Raw yt\u2060-\u2060dlp flags, e.g. --no-part --geo-bypass",
+  "settingsComponents": "Components",
+  "settingsNightly": "Nightly yt\u2060-\u2060dlp",
+  "settingsNightlySubtitle": "Fixes for broken sites land here first",
+  "settingsAbout": "About",
+  "settingsAboutLicense": "Free and open source, GPL-3.0",
+  "settingsSourceCode": "Source code",
+  "settingsReportProblem": "Report a problem",
+  "settingsPoweredBy": "Powered by yt\u2060-\u2060dlp",
+  "settingsPoweredBySubtitle": "The real hero. Go star it.",
+  "settingsLicenses": "Open source licenses",
+  "settingsLegal": "Please only download what you have the right to.",
+  "componentInstall": "Install",
+  "componentUpdate": "Update",
+  "componentChecking": "Checking...",
+  "componentUnavailable": "Unavailable",
+  "componentNotInstalled": "Not installed · {purpose}",
+  "@componentNotInstalled": {
+    "placeholders": {
+      "purpose": {
+        "type": "String"
+      }
+    }
+  },
+  "componentUnknownVersion": "unknown version",
+  "componentManaged": "managed by {app}",
+  "@componentManaged": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "componentInstalledBy": "installed by {app}",
+  "@componentInstalledBy": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "componentFromSystem": "from your system",
+  "componentFoundOnSystem": "found on your system",
+  "componentCustom": "custom: {path}",
+  "@componentCustom": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "componentUseCustom": "Use a custom executable...",
+  "componentStopCustom": "Stop using the custom path",
+  "componentChooseExecutable": "Choose the {tool} executable",
+  "@componentChooseExecutable": {
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "componentInstallFailed": "Could not finish: check your connection and try again.",
+  "componentInstalled": "Installed",
+  "componentUpdated": "Updated to {version}",
+  "@componentUpdated": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "componentUpToDate": "Already up to date ({version})",
+  "@componentUpToDate": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "componentFailed": "Failed: {error}",
+  "@componentFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "componentRecommended": "recommended",
+  "purposeYtDlp": "The download engine. Required.",
+  "purposeFfmpeg": "Merges video with audio and converts formats.",
+  "purposeDeno": "JavaScript runtime that YouTube now requires.",
+  "installStarting": "Starting",
+  "installDownloading": "Downloading",
+  "installUnpacking": "Unpacking",
+  "installUpdating": "Updating",
+  "installProgress": "{stage} {percent}",
+  "@installProgress": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "componentStaleSystem": "Found {version} on your system. {app} will keep its own up-to-date copy instead.",
+  "@componentStaleSystem": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "supportTitle": "Keep {app} free",
+  "@supportTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "supportBody": "{app} has no ads, no tracking and no paywall, and it never will. If it saved you some time, a small donation keeps updates coming.",
+  "@supportBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "supportSponsors": "GitHub Sponsors",
+  "supportCoffee": "Buy a coffee",
+  "supportStar": "Star on GitHub",
+  "templatesTitle": "Command templates",
+  "templatesNew": "New template",
+  "templatesEmptyTitle": "No templates yet",
+  "templatesEmptyBody": "Save any yt\u2060-\u2060dlp flags you use often, then pick them from \"More options\" when downloading.",
+  "templatesCreate": "Create one",
+  "templatesDelete": "Delete template",
+  "templatesDeleted": "Template deleted",
+  "templatesEdit": "Edit template",
+  "templatesName": "Name",
+  "templatesNameError": "Give it a name you will recognize",
+  "templatesFlags": "yt\u2060-\u2060dlp flags",
+  "templatesFlagsError": "Add at least one yt\u2060-\u2060dlp flag",
+  "templatesNoLink": "Leave the link out; it is added for you",
+  "templatesFlagsHelper": "Output folder, progress and the link are added automatically.",
+  "templatesSave": "Save template",
+  "setupWelcome": "Welcome to {app}",
+  "@setupWelcome": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "setupBodyDesktop": "{app} runs on yt\u2060-\u2060dlp, the open source engine behind most good downloaders. Let's fetch the pieces it needs. They live inside {app}'s own folder and nothing is installed system-wide.",
+  "@setupBodyDesktop": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "setupBodyAndroid": "Everything {app} needs is built in. Two quick things and you're set.",
+  "@setupBodyAndroid": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "setupGetReady": "Get everything ready",
+  "setupWorking": "Setting things up...",
+  "setupSkipOptional": "Skip the optional parts",
+  "setupStart": "Start snagging",
+  "setupEngine": "Download engine",
+  "setupEngineBuiltIn": "yt\u2060-\u2060dlp {version} · built in",
+  "@setupEngineBuiltIn": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "setupUpdateEngine": "Update to the latest yt\u2060-\u2060dlp",
+  "setupUpdateEngineSubtitle": "Sites change often, and a fresh engine fixes most problems.",
+  "setupNotifications": "Show download progress",
+  "setupNotificationsSubtitle": "A quiet notification while downloads run in the background.",
+  "setupAllowed": "Allowed",
+  "setupLanguage": "Language"
+}

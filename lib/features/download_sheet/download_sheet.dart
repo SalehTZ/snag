@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format.dart';
+import '../../l10n/l10n.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/theme.dart';
 import '../../data/providers.dart';
@@ -133,10 +133,11 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
     // Show via the root messenger before this route goes away; capture the
     // notifier because this widget is disposed by the time "View" is tapped.
     final tabs = ref.read(tabProvider.notifier);
+    final l = context.l10n;
     showSnack(
       context,
-      count == 1 ? 'Added to the queue' : '${plural(count, 'item')} added to the queue',
-      actionLabel: 'View',
+      count == 1 ? l.commonAddedToQueue : l.itemsAddedToQueue(count),
+      actionLabel: l.commonView,
       onAction: () => tabs.go(AppTab.queue),
     );
     Navigator.of(context).pop(true);
@@ -145,17 +146,18 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     final templates = ref.watch(templatesProvider);
     final usingTemplate = _template != null;
     final count = info.isPlaylist ? _selected.length : 1;
 
     final buttonLabel = info.isPlaylist
-        ? (count == 0 ? 'Select something to download' : 'Download ${plural(count, 'item')}')
+        ? (count == 0 ? l.sheetSelectSomething : l.sheetDownloadItems(count))
         : usingTemplate
-            ? 'Download with template'
+            ? l.sheetDownloadTemplate
             : _mode == DownloadMode.audio
-                ? 'Download audio'
-                : 'Download video';
+                ? l.sheetDownloadAudio
+                : l.sheetDownloadVideo;
 
     final body = <Widget>[
       _Header(info: info),
@@ -167,16 +169,16 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
           ignoring: usingTemplate,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             SegmentedButton<DownloadMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: DownloadMode.video,
-                  icon: Icon(Icons.movie_rounded),
-                  label: Text('Video'),
+                  icon: const Icon(Icons.movie_rounded),
+                  label: Text(l.sheetVideo),
                 ),
                 ButtonSegment(
                   value: DownloadMode.audio,
-                  icon: Icon(Icons.music_note_rounded),
-                  label: Text('Audio only'),
+                  icon: const Icon(Icons.music_note_rounded),
+                  label: Text(l.sheetAudioOnly),
                 ),
               ],
               selected: {_mode},
@@ -186,13 +188,13 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
               }),
             ),
             const SizedBox(height: 20),
-            Text(_mode == DownloadMode.video ? 'Quality' : 'Format',
+            Text(_mode == DownloadMode.video ? l.sheetQuality : l.sheetFormat,
                 style: theme.textTheme.titleSmall),
             const SizedBox(height: 10),
             AnimatedSwitcher(
               duration: Motion.of(context, Motion.short),
               layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.topLeft,
+                alignment: AlignmentDirectional.topStart,
                 children: [...previous, ?current],
               ),
               child: Wrap(
@@ -203,7 +205,7 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
                     ? [
                         for (final q in _qualityOptions)
                           ChoiceChip(
-                            label: Text(q.label),
+                            label: Text(l.quality(q)),
                             selected: _formatId == null && _quality == q,
                             onSelected: (_) => setState(() {
                               _quality = q;
@@ -214,7 +216,7 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
                     : [
                         for (final a in AudioFormat.values)
                           ChoiceChip(
-                            label: Text(a == AudioFormat.best ? 'Original' : a.label),
+                            label: Text(l.audio(a)),
                             selected: _formatId == null && _audio == a,
                             onSelected: (_) => setState(() {
                               _audio = a;
@@ -231,10 +233,11 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
                 contentPadding: EdgeInsets.zero,
                 value: _subs,
                 onChanged: (v) => setState(() => _subs = v),
-                title: const Text('Embed subtitles'),
+                title: Text(l.sheetEmbedSubtitles),
                 subtitle: Text(info.isPlaylist
-                    ? 'When the video has them'
-                    : 'Available: ${_langSummary(info.subtitleLangs)}'),
+                    ? l.sheetSubtitlesWhenAvailable
+                    : l.sheetSubtitlesAvailable(
+                        _langSummary(l, info.subtitleLangs))),
               ),
             ],
           ]),
@@ -265,12 +268,12 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
                   DropdownButtonFormField<String?>(
                     initialValue: _templateId,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Command template',
-                      helperText: 'Replaces the options above with your own yt-dlp flags',
+                    decoration: InputDecoration(
+                      labelText: l.sheetTemplate,
+                      helperText: l.sheetTemplateHelper,
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('None')),
+                      DropdownMenuItem(value: null, child: Text(l.commonNone)),
                       for (final t in templates)
                         DropdownMenuItem(
                           value: t.id,
@@ -321,9 +324,9 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
     );
   }
 
-  static String _langSummary(List<String> langs) {
+  static String _langSummary(AppLocalizations l, List<String> langs) {
     if (langs.length <= 4) return langs.join(', ');
-    return '${langs.take(4).join(', ')} and ${langs.length - 4} more';
+    return l.sheetLanguagesAndMore(langs.take(4).join(', '), langs.length - 4);
   }
 }
 
@@ -337,7 +340,7 @@ class _Header extends StatelessWidget {
     final scheme = theme.colorScheme;
     final meta = [
       if (info.uploader != null) info.uploader!,
-      if (info.isPlaylist) plural(info.entries.length, 'item'),
+      if (info.isPlaylist) context.l10n.itemCount(info.entries.length),
       if (info.extractor != null) info.extractor!,
     ].join(' · ');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -357,12 +360,17 @@ class _Header extends StatelessWidget {
       if (info.isPlaylist)
         Padding(
           padding: const EdgeInsets.only(bottom: 6),
-          child: Text('PLAYLIST',
+          child: Text(context.l10n.sheetPlaylist,
               style: theme.textTheme.labelMedium?.copyWith(
                   color: scheme.primary, letterSpacing: 1.2)),
         ),
       // Primary content: wraps, never truncates.
-      SelectableText(info.title, style: theme.textTheme.titleLarge),
+      SizedBox(
+        width: double.infinity,
+        child: SelectableText(info.title,
+            textDirection: contentDirection(info.title),
+            style: theme.textTheme.titleLarge),
+      ),
       if (meta.isNotEmpty) ...[
         const SizedBox(height: 4),
         Text(meta,
@@ -390,7 +398,9 @@ class _AdvancedToggle extends StatelessWidget {
           curve: Motion.spatial,
           child: const Icon(Icons.expand_more_rounded),
         ),
-        label: Text(open ? 'Fewer options' : 'More options'),
+        label: Text(open
+            ? context.l10n.sheetFewerOptions
+            : context.l10n.sheetMoreOptions),
       ),
     );
   }
@@ -412,6 +422,7 @@ class _FormatPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     final shown = mode == DownloadMode.audio
         ? formats.where((f) => f.hasAudio && !f.hasVideo).toList()
         : formats.where((f) => f.hasVideo).toList();
@@ -422,10 +433,10 @@ class _FormatPicker extends StatelessWidget {
         f.hasVideo && !f.hasAudio ? '${f.id}+ba/${f.id}' : f.id;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Exact format', style: theme.textTheme.titleSmall),
+      Text(l.sheetExactFormat, style: theme.textTheme.titleSmall),
       const SizedBox(height: 4),
       Text(
-        'For when you know exactly what you want. Overrides the quality above.',
+        l.sheetExactFormatHelp,
         style: theme.textTheme.bodySmall
             ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
@@ -447,11 +458,11 @@ class _FormatPicker extends StatelessWidget {
                 RadioListTile<String?>(
                   dense: true,
                   value: selectorFor(f),
-                  title: Text(f.label),
+                  title: Text(f.label, textDirection: TextDirection.ltr),
                   subtitle: Text([
-                    if (f.filesize != null) formatBytes(f.filesize),
-                    if (f.hasVideo && !f.hasAudio) 'audio added automatically',
-                    'id ${f.id}',
+                    if (f.filesize != null) context.fmt.bytes(f.filesize),
+                    if (f.hasVideo && !f.hasAudio) l.sheetAudioAdded,
+                    l.sheetFormatId(f.id),
                   ].join(' · ')),
                 ),
             ],
@@ -463,7 +474,7 @@ class _FormatPicker extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: () => onChanged(null),
-            child: const Text('Use the quality preset instead'),
+            child: Text(l.sheetUsePreset),
           ),
         ),
     ]);
@@ -484,17 +495,19 @@ class _PlaylistPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
+    final fmt = context.fmt;
     final all = selected.length == entries.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         Expanded(
-          child: Text('${selected.length} of ${entries.length} selected',
+          child: Text(l.sheetSelectedOf(selected.length, entries.length),
               style: theme.textTheme.titleSmall),
         ),
         TextButton(
           onPressed: () => onChanged(
               all ? <int>{} : {for (var i = 0; i < entries.length; i++) i}),
-          child: Text(all ? 'Select none' : 'Select all'),
+          child: Text(all ? l.sheetSelectNone : l.sheetSelectAll),
         ),
       ]),
       const SizedBox(height: 4),
@@ -519,10 +532,13 @@ class _PlaylistPicker extends StatelessWidget {
                 onChanged(next);
               },
               controlAffinity: ListTileControlAffinity.leading,
-              title: Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+              title: Text(e.title,
+                  textDirection: contentDirection(e.title),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
               subtitle: Text([
-                '#${i + 1}',
-                if (e.duration != null) formatDuration(e.duration),
+                '#${fmt.digits(i + 1)}',
+                if (e.duration != null) fmt.duration(e.duration),
                 if (e.uploader != null) e.uploader!,
               ].join(' · ')),
             );

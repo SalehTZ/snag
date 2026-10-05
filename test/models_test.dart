@@ -6,6 +6,7 @@ import 'package:snag/core/format.dart';
 import 'package:snag/data/records.dart';
 import 'package:snag/data/settings.dart';
 import 'package:snag/engine/models.dart';
+import 'package:snag/l10n/l10n.dart';
 
 void main() {
   group('MediaInfo', () {
@@ -102,34 +103,49 @@ void main() {
     expect(junk.concurrency, 8);
   });
 
-  group('format helpers', () {
-    test('bytes, durations, eta', () {
-      expect(formatBytes(0), '0 B');
-      expect(formatBytes(1536), '1.5 KB');
-      expect(formatBytes(null), '-');
-      expect(formatDuration(75), '1:15');
-      expect(formatDuration(3725), '1:02:05');
-      expect(formatEta(42), '42s');
-      expect(formatEta(200), '3m 20s');
-    });
+  group('Fmt (English)', () {
+    final f = Fmt(lookupAppLocalizations(const Locale('en')));
 
-    test('plurals', () {
-      expect(plural(0, 'item'), '0 items');
-      expect(plural(1, 'item'), '1 item');
-      expect(plural(2, 'item'), '2 items');
+    test('bytes, durations, eta', () {
+      expect(f.bytes(0), '0 B');
+      expect(f.bytes(1536), '1.5 KB');
+      expect(f.bytes(null), '-');
+      expect(f.duration(75), '1:15');
+      expect(f.duration(3725), '1:02:05');
+      expect(f.eta(42), '42s');
+      expect(f.eta(200), '3m 20s');
+      expect(f.percent(0.42), '42%');
     });
 
     test('relative time across a month boundary', () {
       final now = DateTime(2026, 3, 1, 10);
-      expect(formatRelative(DateTime(2026, 2, 28, 22), now: now), 'yesterday');
-      expect(formatRelative(DateTime(2026, 3, 1, 7), now: now), '3 hours ago');
-      expect(formatRelative(DateTime(2025, 2, 3), now: now), '3 Feb 2025');
+      expect(f.relative(DateTime(2026, 2, 28, 22), now: now), 'yesterday');
+      expect(f.relative(DateTime(2026, 3, 1, 7), now: now), '3 hours ago');
+      expect(f.relative(DateTime(2026, 3, 1, 9, 59), now: now), '1 min ago');
+    });
+  });
+
+  group('Fmt (Persian)', () {
+    final f = Fmt(lookupAppLocalizations(const Locale('fa')));
+
+    test('uses Persian digits and units', () {
+      expect(f.duration(75), '۱:۱۵');
+      expect(f.bytes(1536), '۱٫۵ کیلوبایت');
+      expect(f.eta(42), '۴۲ ثانیه');
     });
 
-    test('extractUrl pulls links out of shared text', () {
-      expect(extractUrl('Watch this! https://youtu.be/abc?t=3 wow'),
-          'https://youtu.be/abc?t=3');
-      expect(extractUrl('no link here'), isNull);
+    test('dates use the Solar Hijri calendar', () {
+      // 21 March 2026 is 1 Farvardin 1405.
+      expect(f.date(DateTime(2026, 3, 21), now: DateTime(2026, 6, 1)),
+          '۱ فروردین');
+      expect(f.date(DateTime(2025, 3, 21), now: DateTime(2026, 6, 1)),
+          '۱ فروردین ۱۴۰۴');
     });
+  });
+
+  test('extractUrl pulls links out of shared text', () {
+    expect(extractUrl('Watch this! https://youtu.be/abc?t=3 wow'),
+        'https://youtu.be/abc?t=3');
+    expect(extractUrl('no link here'), isNull);
   });
 }

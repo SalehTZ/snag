@@ -12,8 +12,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   LicenseRegistry.addLicense(() async* {
-    final ofl = await rootBundle.loadString('assets/fonts/OFL.txt');
-    yield LicenseEntryWithLineBreaks(['Figtree'], ofl);
+    for (final font in ['Figtree', 'Vazirmatn']) {
+      final ofl = await rootBundle.loadString('assets/fonts/$font-OFL.txt');
+      yield LicenseEntryWithLineBreaks([font], ofl);
+    }
   });
 
   if (isDesktop) {

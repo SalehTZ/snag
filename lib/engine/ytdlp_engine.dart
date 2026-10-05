@@ -6,17 +6,49 @@ import 'args_builder.dart';
 import 'models.dart';
 import 'output_parser.dart';
 
+/// What went wrong, so the UI can explain it in the user's language.
+enum EngineErrorKind {
+  botCheck,
+  unsupportedUrl,
+  privateVideo,
+  signInRequired,
+  rateLimited,
+  network,
+  ffmpegMissing,
+  formatUnavailable,
+  notInstalled,
+  noMedia,
+  unexpectedOutput,
+  folderNotWritable,
+  engineStart,
+  invalidLink,
+  unknown,
+}
+
 class EngineException implements Exception {
-  EngineException(this.message, {this.details});
+  EngineException(this.kind, {this.raw, this.details});
 
-  /// Friendly, actionable message.
-  final String message;
+  /// Classifies a raw yt-dlp error line.
+  factory EngineException.fromYtDlp(String raw, {String? details}) =>
+      EngineException(classifyError(raw), raw: raw, details: details);
 
-  /// Raw yt-dlp output for the "details" disclosure.
+  final EngineErrorKind kind;
+
+  /// yt-dlp's own (English) message, shown when [kind] is unknown.
+  final String? raw;
+
+  /// Raw output for the "details" disclosure.
   final String? details;
 
   @override
-  String toString() => message;
+  String toString() => raw ?? kind.name;
+}
+
+/// Outcome of a yt-dlp self-update.
+class UpdateResult {
+  const UpdateResult({required this.changed, this.version});
+  final bool changed;
+  final String? version;
 }
 
 class CancelledException implements Exception {
@@ -46,7 +78,7 @@ abstract class YtDlpEngine {
 
   Future<String?> version(AppSettings settings);
 
-  Future<String> update(AppSettings settings);
+  Future<UpdateResult> update(AppSettings settings);
 
   Future<MediaInfo> fetchInfo(String url, AppSettings settings) async {
     final tools = await toolPaths(settings);
@@ -55,13 +87,13 @@ abstract class YtDlpEngine {
     final out = await runToString(args, settings);
     final start = out.indexOf('{');
     if (start < 0) {
-      throw EngineException('No media found at this link.', details: out);
+      throw EngineException(EngineErrorKind.noMedia, details: out);
     }
     try {
       final json = jsonDecode(out.substring(start)) as Map<String, dynamic>;
       return MediaInfo.fromJson(json, requestedUrl: url);
     } on FormatException catch (e) {
-      throw EngineException('yt-dlp returned something unexpected.',
+      throw EngineException(EngineErrorKind.unexpectedOutput,
           details: '$e\n$out');
     }
   }

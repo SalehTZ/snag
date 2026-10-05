@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_info.dart';
 import '../../core/platform_actions.dart';
 import '../../core/theme/theme.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/shapes.dart';
 
 /// The donation ask: honest, friendly, never a nag.
@@ -13,6 +14,7 @@ class SupportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l = context.l10n;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -30,16 +32,14 @@ class SupportCard extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text('Keep ${AppInfo.name} free',
+            child: Text(l.supportTitle(AppInfo.name),
                 style: theme.textTheme.titleLarge
                     ?.copyWith(color: scheme.onTertiaryContainer)),
           ),
         ]),
         const SizedBox(height: 12),
         Text(
-          '${AppInfo.name} has no ads, no tracking and no paywall, and it '
-          'never will. If it saved you some time, a small donation keeps '
-          'updates coming.',
+          l.supportBody(AppInfo.name),
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: scheme.onTertiaryContainer),
         ),
@@ -52,21 +52,21 @@ class SupportCard extends StatelessWidget {
             ),
             onPressed: () => PlatformActions.openLink(AppInfo.sponsorUrl),
             icon: const Icon(Icons.favorite_rounded),
-            label: const Text('GitHub Sponsors'),
+            label: Text(l.supportSponsors),
           ),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
                 foregroundColor: scheme.onTertiaryContainer),
             onPressed: () => PlatformActions.openLink(AppInfo.kofiUrl),
             icon: const Icon(Icons.local_cafe_rounded),
-            label: const Text('Buy a coffee'),
+            label: Text(l.supportCoffee),
           ),
           TextButton.icon(
             style: TextButton.styleFrom(
                 foregroundColor: scheme.onTertiaryContainer),
             onPressed: () => PlatformActions.openLink(AppInfo.repoUrl),
             icon: const Icon(Icons.star_outline_rounded),
-            label: const Text('Star on GitHub'),
+            label: Text(l.supportStar),
           ),
         ]),
       ]),

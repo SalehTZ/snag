@@ -9,7 +9,6 @@ import '../core/app_info.dart';
 import '../data/settings.dart';
 import 'args_builder.dart';
 import 'binary_manager.dart';
-import 'output_parser.dart';
 import 'ytdlp_engine.dart';
 
 /// Linux / Windows / macOS: spawns the yt-dlp binary directly.
@@ -32,8 +31,7 @@ class DesktopEngine extends YtDlpEngine {
     final status =
         await binaries.resolve(Component.ytDlp, override: s.ytDlpPath);
     if (!status.available) {
-      throw EngineException(
-          'yt-dlp is not installed yet. Open Settings > Components to set it up.');
+      throw EngineException(EngineErrorKind.notInstalled);
     }
     return status.path!;
   }
@@ -149,16 +147,20 @@ class DesktopEngine extends YtDlpEngine {
   }
 
   @override
-  Future<String> update(AppSettings settings) async {
+  Future<UpdateResult> update(AppSettings settings) async {
+    final before = await version(settings);
     final status =
         await binaries.resolve(Component.ytDlp, override: settings.ytDlpPath);
     if (status.source != ComponentSource.managed) {
-      // Never self-update a binary we do not own (apt, brew, pip...).
+      // Never self-update a binary we do not own (apt, brew, pip...);
+      // install Snag's own copy, which then takes precedence.
       await binaries.install(Component.ytDlp);
-      return 'Installed the latest yt-dlp into ${AppInfo.name}.';
+    } else {
+      await binaries.updateYtDlp(status.path!,
+          nightly: settings.updateChannel == UpdateChannel.nightly);
     }
-    return binaries.updateYtDlp(status.path!,
-        nightly: settings.updateChannel == UpdateChannel.nightly);
+    final after = await version(settings);
+    return UpdateResult(changed: after != before, version: after);
   }
 
   EngineException _failure(String stderr, {int? code}) {
@@ -172,6 +174,6 @@ class DesktopEngine extends YtDlpEngine {
     final raw = errorLine.startsWith('ERROR:')
         ? errorLine.substring(6).trim()
         : errorLine;
-    return EngineException(friendlyError(raw), details: stderr.trim());
+    return EngineException.fromYtDlp(raw, details: stderr.trim());
   }
 }

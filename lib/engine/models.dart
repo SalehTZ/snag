@@ -246,15 +246,6 @@ class DownloadSpec {
         templateName: templateName,
       );
 
-  /// Short description used in queue/library rows.
-  String get summary {
-    if (templateName != null) return templateName!;
-    if (formatId != null) return 'Format $formatId';
-    return mode == DownloadMode.audio
-        ? 'Audio · ${audioFormat.label}'
-        : 'Video · ${quality.label}';
-  }
-
   Map<String, Object?> toJson() => {
         'url': url,
         'mode': mode.name,

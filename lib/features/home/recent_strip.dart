@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format.dart';
+import '../../l10n/l10n.dart';
 import '../../data/providers.dart';
 import '../../engine/models.dart';
 import '../../shell.dart';
@@ -20,13 +20,13 @@ class RecentStrip extends ConsumerWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Expanded(
-          child: Text('Recently snagged',
+          child: Text(context.l10n.homeRecent,
               style: theme.textTheme.titleMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ),
         TextButton(
           onPressed: () => ref.read(tabProvider.notifier).go(AppTab.library),
-          child: const Text('See all'),
+          child: Text(context.l10n.homeSeeAll),
         ),
       ]),
       const SizedBox(height: 4),
@@ -41,11 +41,14 @@ class RecentStrip extends ConsumerWidget {
                 ? Icons.music_note_rounded
                 : Icons.movie_outlined,
           ),
-          title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: Text(item.title,
+              textDirection: contentDirection(item.title),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           subtitle: Text(
             [
               if (item.meta.uploader != null) item.meta.uploader!,
-              formatRelative(item.finishedAt),
+              context.fmt.relative(item.finishedAt),
             ].join(' · '),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -52,6 +52,17 @@ abstract final class PlatformActions {
     return launchUrl(Uri.file(dir));
   }
 
+  /// Android 13+ notification permission. True elsewhere.
+  static Future<bool> notificationsAllowed() async {
+    if (!Platform.isAndroid) return true;
+    return await _android.invokeMethod<bool>('notificationsAllowed') ?? false;
+  }
+
+  static Future<bool> requestNotifications() async {
+    if (!Platform.isAndroid) return true;
+    return await _android.invokeMethod<bool>('requestNotifications') ?? false;
+  }
+
   static Future<void> openLink(String url) =>
       launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 

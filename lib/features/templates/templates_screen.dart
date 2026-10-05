@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/providers.dart';
 import '../../data/records.dart';
 import '../../engine/args_builder.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/common.dart';
 
 /// Saved sets of raw yt-dlp flags, picked from "More options" in the
@@ -14,23 +15,23 @@ class TemplatesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final templates = ref.watch(templatesProvider);
+    final l = context.l10n;
     return Scaffold(
-      appBar: const PageHeader(title: 'Command templates'),
+      appBar: PageHeader(title: l.templatesTitle),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _edit(context, ref, null),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New template'),
+        label: Text(l.templatesNew),
       ),
       body: templates.isEmpty
           ? EmptyState(
               icon: Icons.terminal_rounded,
-              title: 'No templates yet',
-              body: 'Save any yt-dlp flags you use often, then pick them from '
-                  '"More options" when downloading.',
+              title: l.templatesEmptyTitle,
+              body: l.templatesEmptyBody,
               action: FilledButton.tonalIcon(
                 onPressed: () => _edit(context, ref, null),
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Create one'),
+                label: Text(l.templatesCreate),
               ),
             )
           : ReadableWidth(
@@ -43,18 +44,19 @@ class TemplatesScreen extends ConsumerWidget {
                   return ListTile(
                     title: Text(t.name),
                     subtitle: Text(t.args,
+                        textDirection: TextDirection.ltr,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: monoStyle.copyWith(fontSize: 12)),
                     onTap: () => _edit(context, ref, t),
                     trailing: IconButton(
-                      tooltip: 'Delete template',
+                      tooltip: l.templatesDelete,
                       icon: const Icon(Icons.delete_outline_rounded),
                       onPressed: () {
                         final notifier = ref.read(templatesProvider.notifier);
                         notifier.remove(t.id);
-                        showSnack(context, 'Template deleted',
-                            actionLabel: 'Undo',
+                        showSnack(context, l.templatesDeleted,
+                            actionLabel: l.commonUndo,
                             onAction: () => notifier.upsert(t));
                       },
                     ),
@@ -99,12 +101,13 @@ class _TemplateDialogState extends State<_TemplateDialog> {
   void _save() {
     final name = _name.text.trim();
     final args = _args.text.trim();
+    final l = context.l10n;
     setState(() {
-      _nameError = name.isEmpty ? 'Give it a name you will recognize' : null;
+      _nameError = name.isEmpty ? l.templatesNameError : null;
       _argsError = args.isEmpty
-          ? 'Add at least one yt-dlp flag'
+          ? l.templatesFlagsError
           : ArgsBuilder.splitArgs(args).any((a) => a.startsWith('http'))
-              ? 'Leave the link out; it is added for you'
+              ? l.templatesNoLink
               : null;
     });
     if (_nameError != null || _argsError != null) return;
@@ -121,27 +124,30 @@ class _TemplateDialogState extends State<_TemplateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New template' : 'Edit template'),
+      title: Text(widget.existing == null ? l.templatesNew : l.templatesEdit),
       content: SizedBox(
         width: 520,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(
             controller: _name,
             autofocus: true,
-            decoration: InputDecoration(labelText: 'Name', errorText: _nameError),
+            decoration:
+                InputDecoration(labelText: l.templatesName, errorText: _nameError),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _args,
             minLines: 3,
             maxLines: 6,
+            textDirection: TextDirection.ltr,
             style: monoStyle.copyWith(fontSize: 13),
             decoration: InputDecoration(
-              labelText: 'yt-dlp flags',
+              labelText: l.templatesFlags,
               hintText: '-f "bv*+ba" --merge-output-format mkv',
               errorText: _argsError,
-              helperText: 'Output folder, progress and the link are added automatically.',
+              helperText: l.templatesFlagsHelper,
               helperMaxLines: 2,
               alignLabelWithHint: true,
             ),
@@ -150,8 +156,8 @@ class _TemplateDialogState extends State<_TemplateDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save template')),
+            onPressed: () => Navigator.pop(context), child: Text(l.commonCancel)),
+        FilledButton(onPressed: _save, child: Text(l.templatesSave)),
       ],
     );
   }

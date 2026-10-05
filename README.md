@@ -4,6 +4,8 @@
 
 <h1 align="center">Snag</h1>
 
+<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a></p>
+
 <p align="center">
   <b>Paste a link. Get the file.</b><br>
   A tiny, free and open source video &amp; audio downloader for Linux, Windows, macOS and Android.<br>
@@ -41,6 +43,7 @@ Most downloaders are either a terminal command or a page full of ads. Snag is th
 - **Nice extras.** Embedded metadata, cover art, chapters and subtitles. SponsorBlock can mark or cut sponsor segments.
 - **Power tools when you want them.** An exact format picker, saved **command templates** with raw yt-dlp flags, extra arguments, cookies (file or straight from your browser), proxy, speed limit and aria2c.
 - **Material 3 Expressive design.** Wallpaper or accent colors, light/dark themes and springy motion that respects reduced-motion settings.
+- **Speaks your language.** English and فارسی are built in, with full right-to-left layout, Persian digits and the Solar Hijri calendar. Every other language comes from the community, and adding one takes [a single file](TRANSLATING.md).
 - **Respects you.** No ads, no tracking, no accounts. Your files never leave your device.
 
 ## Download
@@ -74,7 +77,7 @@ Snag is free and always will be: no ads, no paywalls, no "pro" version. If it sa
 You can also help for free:
 - ⭐ **Star the repo.** It helps other people find Snag.
 - 🐛 **Report broken sites** with the log from the download's details sheet.
-- 🌍 **Translate** Snag into your language (coming soon).
+- 🌍 **Translate** Snag into your language. It takes [one file](TRANSLATING.md).
 - 💜 **Star [yt-dlp](https://github.com/yt-dlp/yt-dlp)** too. Snag would be nothing without it.
 
 ## Build it yourself
@@ -122,11 +125,12 @@ The trick that keeps it small: Snag asks yt-dlp to print **machine-readable prog
 | `lib/engine/` | yt-dlp args, output parsing, desktop/Android engines, binary manager |
 | `lib/features/` | Home, download sheet, queue, library, settings, templates, first-run setup |
 | `lib/core/theme/` | Material 3 Expressive theme and spring motion |
+| `lib/l10n/` | Translations (`app_<locale>.arb`) and locale-aware formatting |
 | `android/app/src/main/kotlin/` | `YtDlpBridge`, `DownloadService`, share intent |
 
 ## Contributing
 
-PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md). If a site is broken, first try **Settings > Components > Update** (or switch on nightly yt-dlp). Most breakages are fixed upstream within days.
+PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md), and [TRANSLATING.md](TRANSLATING.md) if you'd like to add your language. If a site is broken, first try **Settings > Components > Update** (or switch on nightly yt-dlp). Most breakages are fixed upstream within days.
 
 ## Legal
 
@@ -137,4 +141,4 @@ Snag is licensed under the **[GNU GPL v3](LICENSE)**. It is inspired by [Seal](h
 - [youtubedl-android](https://github.com/yausername/youtubedl-android), GPL-3.0
 - [FFmpeg](https://ffmpeg.org), GPL builds from [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds)
 - [Deno](https://deno.com), MIT
-- [Figtree](https://github.com/erikdkennedy/figtree) font, SIL OFL 1.1
+- [Figtree](https://github.com/erikdkennedy/figtree) and [Vazirmatn](https://github.com/rastikerdar/vazirmatn) fonts, SIL OFL 1.1

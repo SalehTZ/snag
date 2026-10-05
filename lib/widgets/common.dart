@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../core/format.dart';
+import '../l10n/l10n.dart';
 import '../core/theme/motion.dart';
 import '../core/theme/theme.dart';
 import 'shapes.dart';
@@ -58,8 +58,8 @@ class MediaThumb extends StatelessWidget {
                       ),
               ),
             if (duration != null && duration! > 0)
-              Positioned(
-                right: 6,
+              PositionedDirectional(
+                end: 6,
                 bottom: 6,
                 child: Container(
                   padding:
@@ -69,7 +69,7 @@ class MediaThumb extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    formatDuration(duration),
+                    context.fmt.duration(duration),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
@@ -184,7 +184,7 @@ class _ErrorPanelState extends State<ErrorPanel> {
                 TextButton.icon(
                   onPressed: widget.onRetry,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Try again'),
+                  label: Text(context.l10n.commonTryAgain),
                   style: TextButton.styleFrom(
                       foregroundColor: scheme.onErrorContainer),
                 ),
@@ -194,7 +194,9 @@ class _ErrorPanelState extends State<ErrorPanel> {
                   icon: Icon(_open
                       ? Icons.expand_less_rounded
                       : Icons.expand_more_rounded),
-                  label: Text(_open ? 'Hide details' : 'Show details'),
+                  label: Text(_open
+                      ? context.l10n.commonHideDetails
+                      : context.l10n.commonShowDetails),
                   style: TextButton.styleFrom(
                       foregroundColor: scheme.onErrorContainer),
                 ),
@@ -203,7 +205,7 @@ class _ErrorPanelState extends State<ErrorPanel> {
                   onPressed: () =>
                       Clipboard.setData(ClipboardData(text: widget.details!)),
                   icon: const Icon(Icons.copy_rounded),
-                  label: const Text('Copy log'),
+                  label: Text(context.l10n.commonCopyLog),
                   style: TextButton.styleFrom(
                       foregroundColor: scheme.onErrorContainer),
                 ),
@@ -227,6 +229,7 @@ class _ErrorPanelState extends State<ErrorPanel> {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       widget.details!,
+                      textDirection: TextDirection.ltr,
                       style: monoStyle.copyWith(fontSize: 12, height: 1.4),
                     ),
                   ),
@@ -247,7 +250,7 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 8, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 8, 8),
       child: Row(children: [
         Expanded(
           child: Text(
@@ -304,13 +307,15 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canPop = Navigator.of(context).canPop();
+    // Ask whether *this page's* route can be dismissed. Navigator.canPop()
+    // is navigator-wide and turns true whenever a sheet or dialog is open.
+    final canPop = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
     return SafeArea(
       bottom: false,
       child: SizedBox(
         height: preferredSize.height,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(canPop ? 8 : 24, 16, 12, 8),
+          padding: EdgeInsetsDirectional.fromSTEB(canPop ? 8 : 24, 16, 12, 8),
           child: Row(children: [
             if (canPop) ...[
               const BackButton(),
