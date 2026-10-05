@@ -301,6 +301,7 @@ class _MobileSetupState extends ConsumerState<_MobileSetup> {
   bool _updateEngine = true;
   bool _notify = true;
   bool _notifyAllowed = false;
+  StorageStatus? _storage;
   bool _running = false;
   bool _updated = false;
   Object? _error;
@@ -313,7 +314,13 @@ class _MobileSetupState extends ConsumerState<_MobileSetup> {
 
   Future<void> _load() async {
     final allowed = await PlatformActions.notificationsAllowed();
-    if (mounted) setState(() => _notifyAllowed = allowed);
+    final storage = await PlatformActions.storageStatus();
+    if (mounted) {
+      setState(() {
+        _notifyAllowed = allowed;
+        _storage = storage;
+      });
+    }
     try {
       final v =
           await ref.read(engineProvider).version(ref.read(settingsProvider));
@@ -328,6 +335,14 @@ class _MobileSetupState extends ConsumerState<_MobileSetup> {
       _running = true;
       _error = null;
     });
+    // Android 9/10 cannot save anything without this, so it isn't optional.
+    if (_storage != null &&
+        _storage!.needsLegacyPermission &&
+        !_storage!.legacyGranted) {
+      await PlatformActions.requestLegacyStorage();
+      final storage = await PlatformActions.storageStatus();
+      if (mounted) setState(() => _storage = storage);
+    }
     if (_notify && !_notifyAllowed) {
       final allowed = await PlatformActions.requestNotifications();
       if (mounted) setState(() => _notifyAllowed = allowed);
@@ -383,6 +398,13 @@ class _MobileSetupState extends ConsumerState<_MobileSetup> {
               _running ? null : (v) => setState(() => _updateEngine = v),
         ),
       ),
+      if (_storage?.needsLegacyPermission ?? false)
+        _StepCard(
+          leading: _storage!.legacyGranted ? _doneIcon(scheme) : _todoIcon(scheme),
+          title: l.setupStorage,
+          subtitle:
+              _storage!.legacyGranted ? l.setupAllowed : l.setupStorageSubtitle,
+        ),
       _StepCard(
         leading: _notifyAllowed ? _doneIcon(scheme) : _todoIcon(scheme),
         title: l.setupNotifications,

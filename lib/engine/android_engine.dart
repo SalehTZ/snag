@@ -107,6 +107,14 @@ class AndroidEngine extends YtDlpEngine {
     return controller.stream;
   }
 
+  /// The download notification is drawn natively; give it the app's words.
+  Future<void> setNotificationLabels(
+          {required String downloading, required String locale}) =>
+      _method.invokeMethod<void>('setNotificationLabels', {
+        'downloading': downloading,
+        'locale': locale,
+      });
+
   @override
   Future<void> cancel(String taskId) =>
       _method.invokeMethod<void>('cancel', {'taskId': taskId});

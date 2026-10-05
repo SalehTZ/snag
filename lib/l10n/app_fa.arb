@@ -27,7 +27,7 @@
   "commonAddedToQueue": "به صف اضافه شد",
   "itemsAddedToQueue": "{count, plural, other{{count} مورد به صف اضافه شد}}",
   "itemCount": "{count, plural, other{{count} مورد}}",
-  "homeHeadline": "بگیرش",
+  "brandMeaning": "قاپیدن",
   "homeSubtitle": "لینکی از یوتیوب، اینستاگرام، تیک‌تاک، ایکس، ساندکلاد، ویمیو یا بیش از هزار سایت دیگر بچسبانید.",
   "homePaste": "چسباندن",
   "homeClipboardEmpty": "در کلیپ‌بورد لینکی نیست.",
@@ -290,5 +290,12 @@
   "setupNotifications": "نمایش پیشرفت دانلود",
   "setupNotificationsSubtitle": "یک اعلان آرام وقتی دانلودها در پس‌زمینه اجرا می‌شوند.",
   "setupAllowed": "مجاز شد",
-  "setupLanguage": "زبان"
+  "setupLanguage": "زبان",
+  "setupStorage": "ذخیره در پوشه‌ی دانلودها",
+  "setupStorageSubtitle": "این نسخه از اندروید پیش از ذخیره‌ی فایل در آنجا از شما اجازه می‌گیرد.",
+  "folderAccessTitle": "به این پوشه دسترسی داده شود؟",
+  "folderAccessBody": "اندروید به برنامه‌ها اجازه می‌دهد خودشان فقط در Download و Documents فایل ذخیره کنند. برای ذخیره در {folder}، {app} به «دسترسی به همه‌ی فایل‌ها» نیاز دارد. هر وقت خواستید می‌توانید آن را در تنظیمات سیستم خاموش کنید.",
+  "folderAccessAllow": "اجازه دادن",
+  "folderAccessDenied": "دسترسی داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.",
+  "notifyDownloading": "در حال دانلود"
 }

@@ -63,6 +63,24 @@ abstract final class PlatformActions {
     return await _android.invokeMethod<bool>('requestNotifications') ?? false;
   }
 
+  static Future<StorageStatus> storageStatus() async {
+    if (!Platform.isAndroid) return const StorageStatus.desktop();
+    final m = await _android.invokeMapMethod<String, Object?>('storageStatus');
+    return StorageStatus.fromMap(m ?? const {});
+  }
+
+  /// Android 9/10: WRITE_EXTERNAL_STORAGE, needed even for Download/.
+  static Future<bool> requestLegacyStorage() async {
+    if (!Platform.isAndroid) return true;
+    return await _android.invokeMethod<bool>('requestLegacyStorage') ?? false;
+  }
+
+  /// Android 11+: "All files access", for folders outside Download/Documents.
+  static Future<bool> requestAllFilesAccess() async {
+    if (!Platform.isAndroid) return true;
+    return await _android.invokeMethod<bool>('requestAllFilesAccess') ?? false;
+  }
+
   static Future<void> openLink(String url) =>
       launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 
@@ -81,3 +99,51 @@ abstract final class PlatformActions {
     return controller.stream;
   }
 }
+
+/// What Snag may write to on this device.
+class StorageStatus {
+  const StorageStatus({
+    this.android = true,
+    required this.sdk,
+    required this.needsLegacyPermission,
+    required this.legacyGranted,
+    required this.allFilesAccess,
+    required this.externalRoot,
+  });
+
+  const StorageStatus.desktop()
+      : android = false,
+        sdk = 0,
+        needsLegacyPermission = false,
+        legacyGranted = true,
+        allFilesAccess = true,
+        externalRoot = '';
+
+  factory StorageStatus.fromMap(Map<String, Object?> m) => StorageStatus(
+        sdk: m['sdk'] as int? ?? 0,
+        needsLegacyPermission: m['needsLegacyPermission'] as bool? ?? false,
+        legacyGranted: m['legacyGranted'] as bool? ?? true,
+        allFilesAccess: m['allFilesAccess'] as bool? ?? false,
+        externalRoot: m['externalRoot'] as String? ?? '/storage/emulated/0',
+      );
+
+  final bool android;
+  final int sdk;
+  final bool needsLegacyPermission;
+  final bool legacyGranted;
+  final bool allFilesAccess;
+  final String externalRoot;
+
+  /// Whether Snag can save into [dir] without asking for more access.
+  bool canWriteTo(String dir) {
+    if (!android || allFilesAccess) return true;
+    if (needsLegacyPermission) return legacyGranted;
+    // Android 11+: apps may create files in these shared folders.
+    final root = externalRoot.endsWith('/') ? externalRoot : '$externalRoot/';
+    return ['Download', 'Documents'].any((d) {
+      final base = '$root$d';
+      return dir == base || dir.startsWith('$base/');
+    });
+  }
+}
+

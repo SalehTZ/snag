@@ -13,6 +13,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import java.text.NumberFormat
+import java.util.Locale
 
 /**
  * Keeps the process alive while downloads run in the background, with one
@@ -38,7 +40,28 @@ class DownloadService : Service() {
 
     private fun build(count: Int): Notification {
         ensureChannel(this)
-        val percent = YtDlpBridge.active.values.average().toInt().coerceIn(0, 100)
+        val tasks = YtDlpBridge.active.values.toList()
+        val locale = Locale.forLanguageTag(YtDlpBridge.localeTag)
+        val label = YtDlpBridge.downloadingLabel
+        val processing = tasks.isNotEmpty() && tasks.all { it.processing }
+        val percent = tasks
+            .map { if (it.processing) 100f else it.percent }
+            .average()
+            .takeUnless { it.isNaN() } ?: 0.0
+        // No numbers yet (or only ffmpeg work left): show an indeterminate bar.
+        val indeterminate = processing || percent <= 0.0
+
+        val title = if (count == 1) {
+            tasks.firstOrNull()?.title ?: label
+        } else {
+            "$label (${NumberFormat.getIntegerInstance(locale).format(count)})"
+        }
+        val text = when {
+            count == 1 && tasks.firstOrNull()?.title != null && indeterminate -> label
+            indeterminate -> null
+            else -> NumberFormat.getPercentInstance(locale).format(percent / 100)
+        }
+
         val open = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
@@ -46,9 +69,9 @@ class DownloadService : Service() {
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle(if (count == 1) "Downloading 1 item" else "Downloading $count items")
-            .setContentText("$percent%")
-            .setProgress(100, percent, percent == 0)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setProgress(100, percent.toInt(), indeterminate)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)

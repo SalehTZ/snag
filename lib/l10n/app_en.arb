@@ -49,9 +49,9 @@
       }
     }
   },
-  "homeHeadline": "Snag it",
-  "@homeHeadline": {
-    "description": "Big headline on the home screen. The app adds a colored period after it. Short and playful: 'grab it!'"
+  "brandMeaning": "",
+  "@brandMeaning": {
+    "description": "What the English word 'snag' means in your language (to grab or catch something quickly), shown small next to the 'Snag.' logo on the home screen. Keep it to one or two words. Leave empty in English."
   },
   "homeSubtitle": "Paste a link from YouTube, Instagram, TikTok, X, SoundCloud, Vimeo and well over a thousand other sites.",
   "homePaste": "Paste",
@@ -700,5 +700,25 @@
   "setupNotifications": "Show download progress",
   "setupNotificationsSubtitle": "A quiet notification while downloads run in the background.",
   "setupAllowed": "Allowed",
-  "setupLanguage": "Language"
+  "setupLanguage": "Language",
+  "setupStorage": "Save to your Downloads folder",
+  "setupStorageSubtitle": "This version of Android asks before apps can save files there.",
+  "folderAccessTitle": "Allow access to this folder?",
+  "folderAccessBody": "Android only lets apps save to Download and Documents on their own. To save to {folder}, {app} needs \"All files access\". You can turn it off at any time in system settings.",
+  "@folderAccessBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "folderAccessAllow": "Allow access",
+  "folderAccessDenied": "No access, so downloads stay in the current folder.",
+  "notifyDownloading": "Downloading",
+  "@notifyDownloading": {
+    "description": "Android notification title while downloading; shown as 'Downloading (3)' for several items."
+  }
 }

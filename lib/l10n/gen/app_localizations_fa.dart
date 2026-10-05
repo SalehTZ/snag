@@ -113,7 +113,7 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get homeHeadline => 'بگیرش';
+  String get brandMeaning => 'قاپیدن';
 
   @override
   String get homeSubtitle =>
@@ -1108,4 +1108,29 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get setupLanguage => 'زبان';
+
+  @override
+  String get setupStorage => 'ذخیره در پوشه‌ی دانلودها';
+
+  @override
+  String get setupStorageSubtitle =>
+      'این نسخه از اندروید پیش از ذخیره‌ی فایل در آنجا از شما اجازه می‌گیرد.';
+
+  @override
+  String get folderAccessTitle => 'به این پوشه دسترسی داده شود؟';
+
+  @override
+  String folderAccessBody(String folder, String app) {
+    return 'اندروید به برنامه‌ها اجازه می‌دهد خودشان فقط در Download و Documents فایل ذخیره کنند. برای ذخیره در $folder، $app به «دسترسی به همه‌ی فایل‌ها» نیاز دارد. هر وقت خواستید می‌توانید آن را در تنظیمات سیستم خاموش کنید.';
+  }
+
+  @override
+  String get folderAccessAllow => 'اجازه دادن';
+
+  @override
+  String get folderAccessDenied =>
+      'دسترسی داده نشد، پس دانلودها در همان پوشه‌ی قبلی ذخیره می‌شوند.';
+
+  @override
+  String get notifyDownloading => 'در حال دانلود';
 }

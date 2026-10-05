@@ -115,7 +115,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeHeadline => 'Snag it';
+  String get brandMeaning => '';
 
   @override
   String get homeSubtitle =>
@@ -1115,4 +1115,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupLanguage => 'Language';
+
+  @override
+  String get setupStorage => 'Save to your Downloads folder';
+
+  @override
+  String get setupStorageSubtitle =>
+      'This version of Android asks before apps can save files there.';
+
+  @override
+  String get folderAccessTitle => 'Allow access to this folder?';
+
+  @override
+  String folderAccessBody(String folder, String app) {
+    return 'Android only lets apps save to Download and Documents on their own. To save to $folder, $app needs \"All files access\". You can turn it off at any time in system settings.';
+  }
+
+  @override
+  String get folderAccessAllow => 'Allow access';
+
+  @override
+  String get folderAccessDenied =>
+      'No access, so downloads stay in the current folder.';
+
+  @override
+  String get notifyDownloading => 'Downloading';
 }

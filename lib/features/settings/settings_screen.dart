@@ -695,13 +695,48 @@ class _FolderTile extends ConsumerWidget {
         onTap: () async {
           final dir = await FilePicker.getDirectoryPath(
               dialogTitle: l.settingsChooseFolder);
-          if (dir != null) {
-            ref
-                .read(settingsProvider.notifier)
-                .update((s) => s.copyWith(downloadDir: () => dir));
+          if (dir == null || !context.mounted) return;
+          if (!await _ensureFolderAccess(context, dir)) {
+            if (context.mounted) showSnack(context, l.folderAccessDenied);
+            return;
           }
+          ref
+              .read(settingsProvider.notifier)
+              .update((s) => s.copyWith(downloadDir: () => dir));
         },
       ),
     );
   }
 }
+
+/// On Android 11+, folders outside Download/ and Documents/ need "All files
+/// access". Explains why before sending the user to the system screen.
+Future<bool> _ensureFolderAccess(BuildContext context, String dir) async {
+  final status = await PlatformActions.storageStatus();
+  if (status.canWriteTo(dir)) return true;
+  if (!context.mounted) return false;
+  final l = context.l10n;
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      icon: const Icon(Icons.folder_special_rounded),
+      title: Text(l.folderAccessTitle),
+      content: Text(l.folderAccessBody(dir, AppInfo.name)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l.commonCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(l.folderAccessAllow),
+        ),
+      ],
+    ),
+  );
+  if (ok != true) return false;
+  return status.needsLegacyPermission
+      ? PlatformActions.requestLegacyStorage()
+      : PlatformActions.requestAllFilesAccess();
+}
+

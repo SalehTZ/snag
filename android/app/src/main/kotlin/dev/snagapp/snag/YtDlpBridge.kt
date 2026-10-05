@@ -33,8 +33,12 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
     @Volatile private var initialized = false
     @Volatile private var lastNotify = 0L
 
-    /** taskId -> last known percent, for the foreground notification. */
-    val active = ConcurrentHashMap<String, Float>()
+    /** Running downloads, for the foreground notification. */
+    val active = ConcurrentHashMap<String, TaskProgress>()
+
+    /** Set from Dart so the notification speaks the app's language. */
+    @Volatile var downloadingLabel = "Downloading"
+    @Volatile var localeTag = "en"
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
 
     fun attach(context: Context) {
@@ -79,6 +83,11 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                 result.success(null)
             }
             "version" -> background(result) { ensureInit(); version() }
+            "setNotificationLabels" -> {
+                call.argument<String>("downloading")?.let { downloadingLabel = it }
+                call.argument<String>("locale")?.let { localeTag = it }
+                result.success(null)
+            }
             "update" -> background(result) {
                 ensureInit()
                 val channel = when (call.argument<String>("channel")) {
@@ -120,7 +129,8 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
 
     private fun start(taskId: String, args: List<String>) {
         cancelled.remove(taskId)
-        active[taskId] = 0f
+        val progress = TaskProgress()
+        active[taskId] = progress
         DownloadService.refresh(appContext)
         pool.execute {
             val tail = ArrayDeque<String>()
@@ -130,9 +140,9 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                     request(args),
                     taskId,
                     true, // merge stderr: post-processing + errors arrive as lines
-                ) { progress, _, line ->
-                    if (progress > 0) {
-                        active[taskId] = progress
+                ) { _, _, line ->
+                    if (progress.update(line)) {
+                        // Notifications are rate-limited by Android; ~1/s is plenty.
                         val now = System.currentTimeMillis()
                         if (now - lastNotify > 1000) {
                             lastNotify = now

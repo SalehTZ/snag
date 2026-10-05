@@ -260,11 +260,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 item} other{{count} items}}'**
   String itemCount(int count);
 
-  /// Big headline on the home screen. The app adds a colored period after it. Short and playful: 'grab it!'
+  /// What the English word 'snag' means in your language (to grab or catch something quickly), shown small next to the 'Snag.' logo on the home screen. Keep it to one or two words. Leave empty in English.
   ///
   /// In en, this message translates to:
-  /// **'Snag it'**
-  String get homeHeadline;
+  /// **''**
+  String get brandMeaning;
 
   /// No description provided for @homeSubtitle.
   ///
@@ -1843,6 +1843,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get setupLanguage;
+
+  /// No description provided for @setupStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to your Downloads folder'**
+  String get setupStorage;
+
+  /// No description provided for @setupStorageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This version of Android asks before apps can save files there.'**
+  String get setupStorageSubtitle;
+
+  /// No description provided for @folderAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access to this folder?'**
+  String get folderAccessTitle;
+
+  /// No description provided for @folderAccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android only lets apps save to Download and Documents on their own. To save to {folder}, {app} needs \"All files access\". You can turn it off at any time in system settings.'**
+  String folderAccessBody(String folder, String app);
+
+  /// No description provided for @folderAccessAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access'**
+  String get folderAccessAllow;
+
+  /// No description provided for @folderAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'No access, so downloads stay in the current folder.'**
+  String get folderAccessDenied;
+
+  /// Android notification title while downloading; shown as 'Downloading (3)' for several items.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get notifyDownloading;
 }
 
 class _AppLocalizationsDelegate

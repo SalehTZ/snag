@@ -28,7 +28,9 @@ You don't have to translate everything at once: anything you leave out falls bac
 - **Leave product and technical names alone:** Snag, yt-dlp, ffmpeg, Deno, SponsorBlock, MP4, H.264, cookies.txt.
   In the ARB files `yt-dlp` is written `yt\u2060-\u2060dlp`. The invisible "word joiners" stop it from breaking across two lines. Copy it as is.
 - **Be short and friendly.** Buttons are small. Errors should say what to do next.
-- **"Snag"** is the app's name and also means "to grab". Translate the button/headline as a natural verb ("Get it", "Grab it"); keep the app name itself.
+- **"Snag"** is the app's name and is never translated; the home screen always shows "Snag." as the logo. The English word means "to grab or catch quickly", so:
+  - `brandMeaning` is a tiny gloss shown next to the logo, telling people what the name means in your language (one or two words, e.g. `"schnappen"`).
+  - `homeSnagButton` (the main button) can be a natural verb like "Get it" or "Grab it".
 
 ## Check your work locally (optional)
 

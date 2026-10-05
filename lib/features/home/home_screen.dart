@@ -201,16 +201,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: compact ? 40 : 88),
-            Text.rich(
-              TextSpan(children: [
-                TextSpan(text: l.homeHeadline),
-                TextSpan(text: '.', style: TextStyle(color: scheme.primary)),
-              ]),
-              style: (compact
-                      ? theme.textTheme.displayMedium
-                      : theme.textTheme.displayLarge)
-                  ?.copyWith(color: scheme.onSurface),
-            ),
+            _Wordmark(compact: compact, meaning: l.brandMeaning),
             const SizedBox(height: 12),
             Text(
               l.homeSubtitle,
@@ -524,3 +515,62 @@ class _SnagButton extends StatelessWidget {
     );
   }
 }
+
+/// "Snag." is a name and never translated. Next to it, a small gloss says
+/// what the word means in the user's language (empty in English).
+class _Wordmark extends StatelessWidget {
+  const _Wordmark({required this.compact, required this.meaning});
+  final bool compact;
+  final String meaning;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final display =
+        compact ? theme.textTheme.displayMedium : theme.textTheme.displayLarge;
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: 16,
+      runSpacing: 8,
+      children: [
+        Text.rich(
+          TextSpan(children: [
+            const TextSpan(text: AppInfo.name),
+            TextSpan(text: '.', style: TextStyle(color: scheme.primary)),
+          ]),
+          textDirection: TextDirection.ltr,
+          // The brand is always set in its Latin display face, in any UI.
+          style: display?.copyWith(
+            color: scheme.onSurface,
+            fontFamily: AppTheme.latinFont,
+            fontWeight: FontWeight.w800,
+            letterSpacing: compact ? -1.2 : -1.5,
+            height: 1.0,
+          ),
+        ),
+        if (meaning.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(bottom: compact ? 8 : 12),
+            child: Tooltip(
+              message: '${AppInfo.name} = $meaning',
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: scheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  meaning,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(color: scheme.onSecondaryContainer),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+

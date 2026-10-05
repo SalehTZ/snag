@@ -8,6 +8,8 @@ import 'core/app_info.dart';
 import 'core/format.dart';
 import 'core/platform_actions.dart';
 import 'core/theme/motion.dart';
+import 'data/providers.dart';
+import 'engine/android_engine.dart';
 import 'features/home/home_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/queue/download_manager.dart';
@@ -57,6 +59,18 @@ class _AppShellState extends ConsumerState<AppShell> {
       ref.read(tabProvider.notifier).go(AppTab.home);
       ref.read(incomingUrlProvider.notifier).push(url);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Runs again whenever the app language changes.
+    final engine = ref.read(engineProvider);
+    if (engine is AndroidEngine) {
+      final l = context.l10n;
+      engine.setNotificationLabels(
+          downloading: l.notifyDownloading, locale: l.localeName);
+    }
   }
 
   @override
