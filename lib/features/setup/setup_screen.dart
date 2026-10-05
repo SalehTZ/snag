@@ -17,6 +17,15 @@ class SetupScreen extends ConsumerStatefulWidget {
   ConsumerState<SetupScreen> createState() => _SetupScreenState();
 }
 
+/// yt-dlp from a distro package is usually months old and sites break fast,
+/// so setup only counts it as ready when Snag manages (and can update) it.
+bool _isReady(Component c, ComponentState? s) {
+  final status = s?.status;
+  if (status == null || !status.available) return false;
+  if (c == Component.ytDlp) return status.source != ComponentSource.system;
+  return true;
+}
+
 class _SetupScreenState extends ConsumerState<SetupScreen> {
   final _wanted = {Component.ytDlp, Component.ffmpeg, Component.deno};
   bool _running = false;
@@ -27,7 +36,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     final states = ref.read(componentsProvider);
     for (final c in Component.values) {
       if (!_wanted.contains(c)) continue;
-      if (states[c]?.available ?? false) continue;
+      if (_isReady(c, states[c])) continue;
       final ok = await ctrl.install(c);
       // yt-dlp is the only hard requirement; keep going for the others.
       if (!ok && c == Component.ytDlp) break;
@@ -44,7 +53,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     final scheme = theme.colorScheme;
     final states = ref.watch(componentsProvider);
     final ytReady = states[Component.ytDlp]?.available ?? false;
-    final missing = _wanted.where((c) => !(states[c]?.available ?? false));
+    final missing = _wanted.where((c) => !_isReady(c, states[c]));
     final loaded = states.values.every((s) => s.status != null);
 
     return Scaffold(
@@ -80,6 +89,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                     _ComponentTile(
                       component: c,
                       state: states[c] ?? const ComponentState(),
+                      ready: _isReady(c, states[c]),
                       wanted: _wanted.contains(c),
                       locked: c == Component.ytDlp || _running,
                       onToggle: (v) => setState(
@@ -135,6 +145,7 @@ class _ComponentTile extends StatelessWidget {
   const _ComponentTile({
     required this.component,
     required this.state,
+    required this.ready,
     required this.wanted,
     required this.locked,
     required this.onToggle,
@@ -142,6 +153,7 @@ class _ComponentTile extends StatelessWidget {
 
   final Component component;
   final ComponentState state;
+  final bool ready;
   final bool wanted;
   final bool locked;
   final ValueChanged<bool> onToggle;
@@ -162,6 +174,9 @@ class _ComponentTile extends StatelessWidget {
       subtitle = '${state.stage ?? 'Working'}$pct';
     } else if (status == null) {
       subtitle = 'Checking...';
+    } else if (!ready && status.source == ComponentSource.system) {
+      subtitle = 'Found ${status.version ?? 'an old copy'} on your system. '
+          '${AppInfo.name} will keep its own up-to-date copy instead.';
     } else if (status.available) {
       final where = switch (status.source) {
         ComponentSource.managed => 'installed by ${AppInfo.name}',
@@ -174,7 +189,6 @@ class _ComponentTile extends StatelessWidget {
       subtitle = component.purpose;
     }
 
-    final ready = status?.available ?? false;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
