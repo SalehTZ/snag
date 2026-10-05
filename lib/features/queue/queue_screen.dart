@@ -24,24 +24,37 @@ class QueueScreen extends ConsumerWidget {
     final waiting = tasks.where((t) => t.status == TaskStatus.queued).toList();
     final finished = tasks.where((t) => t.isFinished).toList().reversed.toList();
     final failed = finished.where((t) => t.status == TaskStatus.failed).length;
+    final compact = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Queue'),
+      appBar: PageHeader(
+        title: 'Queue',
         actions: [
           if (failed > 0)
-            TextButton.icon(
-              onPressed: manager.retryAllFailed,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(failed == 1 ? 'Retry failed' : 'Retry $failed failed'),
-            ),
+            compact
+                ? IconButton(
+                    tooltip: 'Retry failed',
+                    onPressed: manager.retryAllFailed,
+                    icon: const Icon(Icons.refresh_rounded),
+                  )
+                : TextButton.icon(
+                    onPressed: manager.retryAllFailed,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(
+                        failed == 1 ? 'Retry failed' : 'Retry $failed failed'),
+                  ),
           if (finished.isNotEmpty)
-            TextButton.icon(
-              onPressed: manager.clearFinished,
-              icon: const Icon(Icons.done_all_rounded),
-              label: const Text('Clear finished'),
-            ),
-          const SizedBox(width: 8),
+            compact
+                ? IconButton(
+                    tooltip: 'Clear finished',
+                    onPressed: manager.clearFinished,
+                    icon: const Icon(Icons.done_all_rounded),
+                  )
+                : TextButton.icon(
+                    onPressed: manager.clearFinished,
+                    icon: const Icon(Icons.done_all_rounded),
+                    label: const Text('Clear finished'),
+                  ),
         ],
       ),
       body: tasks.isEmpty
@@ -122,7 +135,7 @@ class TaskRow extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 _statusLine(task),
-                maxLines: task.status == TaskStatus.failed ? 3 : 1,
+                maxLines: task.status == TaskStatus.failed ? 3 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: statusColor,
@@ -324,8 +337,7 @@ class _TaskDetails extends ConsumerWidget {
             ),
             child: SelectableText(
               task.log.isEmpty ? 'No output yet.' : task.log.join('\n'),
-              style: const TextStyle(
-                  fontFamily: 'monospace', fontSize: 12, height: 1.4),
+              style: monoStyle.copyWith(fontSize: 12, height: 1.4),
             ),
           ),
         ],

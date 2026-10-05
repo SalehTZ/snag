@@ -16,6 +16,14 @@ class JsonListStore<T> {
   Timer? _pending;
   List<T> _latest = const [];
 
+  /// A store backed by an explicit file (tests, custom locations).
+  factory JsonListStore.at(
+    File file, {
+    required T Function(Map<String, dynamic>) decode,
+    required Map<String, Object?> Function(T) encode,
+  }) =>
+      JsonListStore._(file, decode, encode);
+
   static Future<JsonListStore<T>> open<T>(
     String name, {
     required T Function(Map<String, dynamic>) decode,

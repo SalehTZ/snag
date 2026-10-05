@@ -91,16 +91,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Library'),
+      appBar: PageHeader(
+        title: 'Library',
         actions: [
           if (all.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
-                child: Text(plural(all.length, 'download'),
-                    style: Theme.of(context).textTheme.labelLarge),
-              ),
+              padding: const EdgeInsets.only(right: 12),
+              child: Text(plural(all.length, 'download'),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
         ],
       ),

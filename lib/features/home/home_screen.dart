@@ -196,8 +196,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: compact ? 40 : 88),
-            Text(
-              'Snag it.',
+            Text.rich(
+              TextSpan(children: [
+                const TextSpan(text: 'Snag it'),
+                TextSpan(text: '.', style: TextStyle(color: scheme.primary)),
+              ]),
               style: (compact
                       ? theme.textTheme.displayMedium
                       : theme.textTheme.displayLarge)

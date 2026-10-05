@@ -227,8 +227,7 @@ class _ErrorPanelState extends State<ErrorPanel> {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       widget.details!,
-                      style: const TextStyle(
-                          fontFamily: 'monospace', fontSize: 12, height: 1.4),
+                      style: monoStyle.copyWith(fontSize: 12, height: 1.4),
                     ),
                   ),
                 ),
@@ -291,3 +290,55 @@ void showSnack(BuildContext context, String message,
         : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),
   ));
 }
+
+/// Large, expressive page header used instead of the stock small AppBar.
+class PageHeader extends StatelessWidget implements PreferredSizeWidget {
+  const PageHeader({super.key, required this.title, this.actions = const []});
+
+  final String title;
+  final List<Widget> actions;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(96);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canPop = Navigator.of(context).canPop();
+    return SafeArea(
+      bottom: false,
+      child: SizedBox(
+        height: preferredSize.height,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(canPop ? 8 : 24, 16, 12, 8),
+          child: Row(children: [
+            if (canPop) ...[
+              const BackButton(),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineLarge
+                      ?.copyWith(color: theme.colorScheme.onSurface),
+                ),
+              ),
+            ),
+            ...actions,
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Monospace with real fallbacks; a bare 'monospace' does not resolve on
+/// every desktop platform.
+const monoStyle = TextStyle(
+  fontFamily: 'monospace',
+  fontFamilyFallback: ['Cascadia Mono', 'Consolas', 'Menlo', 'SF Mono', 'DejaVu Sans Mono', 'Noto Sans Mono'],
+);

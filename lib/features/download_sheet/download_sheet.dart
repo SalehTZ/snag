@@ -191,6 +191,10 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
             const SizedBox(height: 10),
             AnimatedSwitcher(
               duration: Motion.of(context, Motion.short),
+              layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.topLeft,
+                children: [...previous, ?current],
+              ),
               child: Wrap(
                 key: ValueKey(_mode),
                 spacing: 8,

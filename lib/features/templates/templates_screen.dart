@@ -15,7 +15,7 @@ class TemplatesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final templates = ref.watch(templatesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Command templates')),
+      appBar: const PageHeader(title: 'Command templates'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _edit(context, ref, null),
         icon: const Icon(Icons.add_rounded),
@@ -45,7 +45,7 @@ class TemplatesScreen extends ConsumerWidget {
                     subtitle: Text(t.args,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+                        style: monoStyle.copyWith(fontSize: 12)),
                     onTap: () => _edit(context, ref, t),
                     trailing: IconButton(
                       tooltip: 'Delete template',
@@ -136,7 +136,7 @@ class _TemplateDialogState extends State<_TemplateDialog> {
             controller: _args,
             minLines: 3,
             maxLines: 6,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+            style: monoStyle.copyWith(fontSize: 13),
             decoration: InputDecoration(
               labelText: 'yt-dlp flags',
               hintText: '-f "bv*+ba" --merge-output-format mkv',

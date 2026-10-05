@@ -40,7 +40,7 @@ class SettingsScreen extends ConsumerWidget {
     void set(AppSettings Function(AppSettings) f) => n.update(f);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: const PageHeader(title: 'Settings'),
       body: ReadableWidth(
         maxWidth: 760,
         child: ListView(
@@ -101,7 +101,7 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.drive_file_rename_outline_rounded),
               title: const Text('File name'),
               subtitle: Text(s.filenameTemplate,
-                  style: const TextStyle(fontFamily: 'monospace')),
+                  style: monoStyle),
               onTap: () async {
                 final v = await _editText(
                   context,
@@ -400,7 +400,7 @@ Future<String?> _editText(
         child: TextField(
           controller: controller,
           autofocus: true,
-          style: monospace ? const TextStyle(fontFamily: 'monospace') : null,
+          style: monospace ? monoStyle : null,
           decoration: InputDecoration(helperText: helper, helperMaxLines: 3),
           onSubmitted: (v) => Navigator.pop(context, v),
         ),
@@ -445,7 +445,7 @@ class _TextTile extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: monospace && value != null
-              ? const TextStyle(fontFamily: 'monospace')
+              ? monoStyle
               : null),
       onTap: () async {
         final v = await _editText(context,
