@@ -8,7 +8,6 @@ abstract final class AppInfo {
   static const issuesUrl = '$repoUrl/issues';
   static const translateUrl = '$repoUrl/blob/main/TRANSLATING.md';
   static const sponsorUrl = 'https://github.com/sponsors/SalehTZ';
-  static const kofiUrl = 'https://ko-fi.com/salehtz';
 
   static const ytDlpUrl = 'https://github.com/yt-dlp/yt-dlp';
   static const supportedSitesUrl =

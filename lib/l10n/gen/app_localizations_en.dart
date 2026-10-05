@@ -1009,9 +1009,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportSponsors => 'GitHub Sponsors';
 
   @override
-  String get supportCoffee => 'Buy a coffee';
-
-  @override
   String get supportStar => 'Star on GitHub';
 
   @override

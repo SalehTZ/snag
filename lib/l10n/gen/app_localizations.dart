@@ -1652,12 +1652,6 @@ abstract class AppLocalizations {
   /// **'GitHub Sponsors'**
   String get supportSponsors;
 
-  /// No description provided for @supportCoffee.
-  ///
-  /// In en, this message translates to:
-  /// **'Buy a coffee'**
-  String get supportCoffee;
-
   /// No description provided for @supportStar.
   ///
   /// In en, this message translates to:

@@ -59,12 +59,29 @@ Grab the latest build from **[Releases](https://github.com/SalehTZ/snag/releases
 
 On desktop, Snag fetches the official **yt-dlp**, **ffmpeg** and **Deno** binaries the first time it runs. It stores them in its own app folder and never installs anything system-wide. You can update yt-dlp from **Settings > Components** with one click, which matters because sites change often. On Android everything is bundled.
 
+<details>
+<summary>Verify that an APK is really from us</summary>
+
+Every official Android release is signed with the same key. Check it with `apksigner` (from the Android SDK build-tools):
+
+```bash
+apksigner verify --print-certs snag-*.apk
+```
+
+The `SHA-256` digest must be:
+
+```
+A5:35:0A:AA:8A:BC:94:6C:C8:68:36:B7:70:F6:61:70:D3:EF:C2:AE:7E:6C:15:B3:DD:0A:3C:E6:A6:AA:13:8D
+```
+
+If it doesn't match, don't install it. An APK signed with a different key also can't update an existing Snag install.
+</details>
+
 ## Support Snag
 
 Snag is free and always will be: no ads, no paywalls, no "pro" version. If it saved you time, please consider chipping in. Donations pay for build machines, code signing certificates (so macOS and Windows stop warning you) and the hours spent keeping up with sites that keep changing.
 
 <a href="https://github.com/sponsors/SalehTZ"><img alt="GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white"></a>
-<a href="https://ko-fi.com/salehtz"><img alt="Ko-fi" src="https://img.shields.io/badge/Ko--fi-buy%20a%20coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white"></a>
 
 **Crypto**, listed cheapest network first. Send only on the network shown; coins sent on a different network can be lost for good. (The app has a copy button for each address: Settings > About > Crypto.)
 

@@ -1002,9 +1002,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get supportSponsors => 'حمایت در گیت‌هاب';
 
   @override
-  String get supportCoffee => 'یک قهوه مهمانم کنید';
-
-  @override
   String get supportStar => 'ستاره در گیت‌هاب';
 
   @override

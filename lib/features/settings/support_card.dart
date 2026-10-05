@@ -63,13 +63,6 @@ class SupportCard extends StatelessWidget {
             icon: const Icon(Icons.currency_bitcoin_rounded),
             label: Text(l.supportCrypto),
           ),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-                foregroundColor: scheme.onTertiaryContainer),
-            onPressed: () => PlatformActions.openLink(AppInfo.kofiUrl),
-            icon: const Icon(Icons.local_cafe_rounded),
-            label: Text(l.supportCoffee),
-          ),
           TextButton.icon(
             style: TextButton.styleFrom(
                 foregroundColor: scheme.onTertiaryContainer),
