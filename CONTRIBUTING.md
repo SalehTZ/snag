@@ -28,6 +28,15 @@ flutter test tool/screenshots --update-goldens   # look at every screen after UI
 - **No hard-coded UI text.** Add the string to `lib/l10n/app_en.arb` (and `app_fa.arb`, which must stay complete), then use `context.l10n.yourKey`. Numbers, sizes and dates go through `context.fmt` so every locale gets its own digits and calendar.
 - Use `EdgeInsetsDirectional`/`AlignmentDirectional` (start/end, not left/right) so right-to-left languages mirror correctly. Links, paths and flags stay `TextDirection.ltr`.
 
+## Releasing
+
+1. Bump `version:` in `pubspec.yaml` (for example `0.1.1+2`; the number after `+` must always go up for Android updates).
+2. Add a `## 0.1.1 - <date>` section to [CHANGELOG.md](CHANGELOG.md): what's new, in plain words.
+3. Merge to `main`, then tag it: `git tag v0.1.1 && git push origin v0.1.1`.
+4. The Release workflow builds every platform and creates a **draft** release with the files, the changelog section, a download table and checksums. Read it over on the Releases page and click **Publish release**.
+
+The workflow refuses a tag that doesn't match `pubspec.yaml` or has no changelog section, within seconds. To redo a release that is still a draft, delete the draft, then move the tag: `git tag -f v0.1.1 && git push -f origin v0.1.1`. Once a release is published, never move its tag; release a new version instead.
+
 ## Commits and PRs
 
 - Keep PRs focused. Describe what changed and how you tested it. Include before/after screenshots for UI changes.
