@@ -410,18 +410,28 @@ class SettingsScreen extends ConsumerWidget {
 /// Every shipped translation, English first, then by native name. A
 /// community-added ARB file shows up here with no code changes.
 List<Locale> _languages() {
-  String name(Locale l) => lookupAppLocalizations(l).languageNativeName;
   return [...AppLocalizations.supportedLocales]..sort((a, b) =>
       a.languageCode == 'en'
           ? -1
           : b.languageCode == 'en'
               ? 1
-              : name(a).compareTo(name(b)));
+              : _nativeName(a).compareTo(_nativeName(b)));
 }
 
-String languageName(BuildContext context, String? code) => code == null
-    ? context.l10n.settingsLanguageSystem
-    : lookupAppLocalizations(Locale(code)).languageNativeName;
+/// A language's name in itself, or its code ("de", "pt-BR") while a new
+/// translation hasn't translated its own name yet.
+String _nativeName(Locale l) {
+  final name = lookupAppLocalizations(l).languageNativeName;
+  final english = lookupAppLocalizations(const Locale('en')).languageNativeName;
+  return name == english && l.languageCode != 'en' ? l.toLanguageTag() : name;
+}
+
+String languageName(BuildContext context, String? code) {
+  final locale = savedLocale(code);
+  return locale == null
+      ? context.l10n.settingsLanguageSystem
+      : _nativeName(locale);
+}
 
 /// Shows the language list. Resolves to a 1-tuple so "System default"
 /// (null) can be told apart from a dismissed dialog.
@@ -435,7 +445,7 @@ Future<(String?,)?> showLanguagePicker(BuildContext context, String? current) {
           groupValue: current,
           onChanged: (v) => Navigator.pop(context, (v,)),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            for (final code in [null, for (final l in _languages()) l.languageCode])
+            for (final code in [null, for (final l in _languages()) l.toString()])
               RadioListTile<String?>(
                 value: code,
                 title: Text(languageName(context, code)),

@@ -104,7 +104,7 @@ T = {
             ("Is downloading videos legal?", "It depends on the content and where you live. Only download what you have the right to, and respect each site's terms."),
         ],
         "foot_license": "Free and open source, GPL-3.0",
-        "foot_links": [("GitHub", REPO), ("Report a problem", f"{REPO}/issues"), ("Translate", f"{REPO}/blob/main/TRANSLATING.md")],
+        "foot_links": [("GitHub", REPO), ("Report a problem", f"{REPO}/issues"), ("Translate", "https://hosted.weblate.org/engage/snag/")],
     },
     "fa": {
         "dir": "rtl",
@@ -166,7 +166,7 @@ T = {
             ("دانلود ویدیو قانونی است؟", "به محتوا و محل زندگی شما بستگی دارد. فقط چیزی را دانلود کنید که حق دانلودش را دارید و به قوانین هر سایت احترام بگذارید."),
         ],
         "foot_license": "رایگان و متن‌باز، GPL-3.0",
-        "foot_links": [("گیت‌هاب", REPO), ("گزارش مشکل", f"{REPO}/issues"), ("ترجمه", f"{REPO}/blob/main/TRANSLATING.md")],
+        "foot_links": [("گیت‌هاب", REPO), ("گزارش مشکل", f"{REPO}/issues"), ("ترجمه", "https://hosted.weblate.org/engage/snag/")],
     },
 }
 

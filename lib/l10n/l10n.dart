@@ -31,6 +31,19 @@ TextDirection? contentDirection(String text) {
 bool isCursiveScript(Locale locale) =>
     const {'fa', 'ar', 'ur', 'ps', 'ckb', 'ug'}.contains(locale.languageCode);
 
+/// The saved language ("fa", "pt_BR", "zh_Hant", i.e. [Locale.toString]),
+/// or null when it is unset or this build doesn't ship it.
+Locale? savedLocale(String? code) {
+  if (code == null) return null;
+  final parts = code.split(RegExp('[_-]'));
+  final locale = Locale.fromSubtags(
+    languageCode: parts.first,
+    scriptCode: parts.skip(1).where((p) => p.length == 4).firstOrNull,
+    countryCode: parts.skip(1).where((p) => p.length != 4).firstOrNull,
+  );
+  return AppLocalizations.supportedLocales.contains(locale) ? locale : null;
+}
+
 /// Text helpers that turn engine types into words in the current language.
 extension AppStrings on AppLocalizations {
   String engineError(Object error) {

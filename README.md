@@ -19,6 +19,19 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22ir.salehtz.snag%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FSalehTZ%2Fsnag%22%2C%22author%22%3A%22SalehTZ%22%2C%22name%22%3A%22Snag%22%7D"><img alt="Get it on Obtainium" src="docs/site/badge_obtainium.png" height="54"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/SalehTZ/snag/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/SalehTZ/snag?style=flat&logo=github&color=f8e444"></a>
+  <a href="https://github.com/SalehTZ/snag/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/SalehTZ/snag/total?label=downloads&logo=github"></a>
+  <a href="https://github.com/SalehTZ/snag/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/SalehTZ/snag/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white"></a>
+  <a href="CHANGELOG.md"><img alt="Changelog" src="https://img.shields.io/badge/changelog-gray?logo=keepachangelog"></a>
+  <a href="https://hosted.weblate.org/engage/snag/"><img alt="Translation status" src="https://img.shields.io/weblate/progress/snag?server=https%3A%2F%2Fhosted.weblate.org&label=translated&logo=weblate&logoColor=white"></a>
+  <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md"><img alt="Supported sites" src="https://img.shields.io/badge/sites-1000%2B-9cf"></a>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/home_desktop_light.png" width="720" alt="Snag on desktop">
 </p>
 
@@ -56,6 +69,8 @@ Grab the latest build from **[Releases](https://github.com/SalehTZ/snag/releases
 | Windows | `snag-windows-x64.zip`, unzip and run `snag.exe` |
 | macOS | `snag-macos.dmg`, drag Snag into Applications (or `snag-macos.zip`). It isn't notarized, so the first time, open it once, then go to **System Settings > Privacy & Security** and click **Open Anyway** |
 | Linux | `snag-linux-x64.AppImage` runs on most distributions: `chmod +x` it and run it. To install it with your package manager, use `snag-linux-x64.deb` (Debian, Ubuntu, Mint) or `snag-linux-x64.rpm` (Fedora, openSUSE). `snag-linux-x64.tar.gz` is the plain bundle: extract and run `./snag` |
+
+On Android, **[add Snag to Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22ir.salehtz.snag%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FSalehTZ%2Fsnag%22%2C%22author%22%3A%22SalehTZ%22%2C%22name%22%3A%22Snag%22%7D)** to get updates straight from these releases.
 
 On desktop, Snag fetches the official **yt-dlp**, **ffmpeg** and **Deno** binaries the first time it runs. It stores them in its own app folder and never installs anything system-wide. You can update yt-dlp from **Settings > Components** with one click, which matters because sites change often. On Android everything is bundled.
 
@@ -106,7 +121,7 @@ The BNB Smart Chain and Ethereum addresses are the same. That's normal: both net
 You can also help for free:
 - ⭐ **Star the repo.** It helps other people find Snag.
 - 🐛 **Report broken sites** with the log from the download's details sheet.
-- 🌍 **Translate** Snag into your language. It takes [one file](TRANSLATING.md).
+- 🌍 **Translate** Snag into your language [on Weblate](https://hosted.weblate.org/engage/snag/), right in your browser.
 - 💜 **Star [yt-dlp](https://github.com/yt-dlp/yt-dlp)** too. Snag would be nothing without it.
 
 ## Build it yourself
@@ -158,9 +173,24 @@ The trick that keeps it small: Snag asks yt-dlp to print **machine-readable prog
 | `lib/l10n/` | Translations (`app_<locale>.arb`) and locale-aware formatting |
 | `android/app/src/main/kotlin/` | `YtDlpBridge`, `DownloadService`, share intent |
 
+## Translations
+
+Snag ships in English and Persian. Help bring it to your language on **[Hosted Weblate](https://hosted.weblate.org/engage/snag/)**: no Git or Flutter needed, and anything you leave out falls back to English. See [TRANSLATING.md](TRANSLATING.md) for the details.
+
+[![Translation status](https://hosted.weblate.org/widget/snag/multi-auto.svg)](https://hosted.weblate.org/engage/snag/)
+
 ## Contributing
 
 PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md), and [TRANSLATING.md](TRANSLATING.md) if you'd like to add your language. If a site is broken, first try **Settings > Components > Update** (or switch on nightly yt-dlp). Most breakages are fixed upstream within days.
+
+## Star history
+
+<a href="https://star-history.com/#SalehTZ/snag&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=SalehTZ/snag&type=Date&theme=dark">
+    <img alt="Star history chart" src="https://api.star-history.com/svg?repos=SalehTZ/snag&type=Date" width="600">
+  </picture>
+</a>
 
 ## Legal
 

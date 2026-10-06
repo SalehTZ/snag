@@ -21,6 +21,19 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22ir.salehtz.snag%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FSalehTZ%2Fsnag%22%2C%22author%22%3A%22SalehTZ%22%2C%22name%22%3A%22Snag%22%7D"><img alt="دریافت از Obtainium" src="docs/site/badge_obtainium.png" height="54"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/SalehTZ/snag/stargazers"><img alt="ستاره‌ها" src="https://img.shields.io/github/stars/SalehTZ/snag?style=flat&logo=github&color=f8e444"></a>
+  <a href="https://github.com/SalehTZ/snag/releases"><img alt="دانلودها" src="https://img.shields.io/github/downloads/SalehTZ/snag/total?label=downloads&logo=github"></a>
+  <a href="https://github.com/SalehTZ/snag/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/SalehTZ/snag/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white"></a>
+  <a href="CHANGELOG.md"><img alt="تغییرات" src="https://img.shields.io/badge/changelog-gray?logo=keepachangelog"></a>
+  <a href="https://hosted.weblate.org/engage/snag/"><img alt="وضعیت ترجمه" src="https://img.shields.io/weblate/progress/snag?server=https%3A%2F%2Fhosted.weblate.org&label=translated&logo=weblate&logoColor=white"></a>
+  <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md"><img alt="سایت‌های پشتیبانی‌شده" src="https://img.shields.io/badge/sites-1000%2B-9cf"></a>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/fa_home_phone.png" width="230" alt="صفحه‌ی اصلی">
   <img src="docs/screenshots/fa_sheet_phone.png" width="230" alt="گزینه‌های دانلود">
   <img src="docs/screenshots/fa_queue_phone.png" width="230" alt="صف دانلود">
@@ -54,6 +67,8 @@
 | ویندوز | `snag-windows-x64.zip`؛ از حالت فشرده خارج کنید و `snag.exe` را اجرا کنید |
 | مک | `snag-macos.dmg`؛ Snag را به پوشه‌ی Applications بکشید (یا `snag-macos.zip`). هنوز notarize نشده، پس بار اول یک بار بازش کنید، بعد به **System Settings › Privacy & Security** بروید و **Open Anyway** را بزنید |
 | لینوکس | `snag-linux-x64.AppImage` روی بیشتر توزیع‌ها اجرا می‌شود: با `chmod +x` اجرایی‌اش کنید و اجرا کنید. برای نصب با مدیر بسته، `snag-linux-x64.deb` (دبیان، اوبونتو، مینت) یا `snag-linux-x64.rpm` (فدورا، اوپن‌سوزه) را بگیرید. `snag-linux-x64.tar.gz` همان بسته‌ی ساده است: از حالت فشرده خارج کنید و `./snag` را اجرا کنید |
+
+روی اندروید، **[Snag را به Obtainium اضافه کنید](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22ir.salehtz.snag%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FSalehTZ%2Fsnag%22%2C%22author%22%3A%22SalehTZ%22%2C%22name%22%3A%22Snag%22%7D)** تا به‌روزرسانی‌ها مستقیم از همین Releases برسد.
 
 روی دسکتاپ، Snag در اولین اجرا نسخه‌های رسمی **yt-dlp**، **ffmpeg** و **Deno** را دریافت می‌کند. همه‌شان داخل پوشه‌ی خود برنامه می‌مانند و چیزی روی سیستم نصب نمی‌شود. yt-dlp را می‌توانید با یک کلیک از **تنظیمات › اجزا** به‌روز کنید؛ این مهم است چون سایت‌ها مدام تغییر می‌کنند. روی اندروید همه‌چیز داخل برنامه است.
 
@@ -112,7 +127,7 @@ Snag رایگان است و رایگان می‌ماند: نه تبلیغ، نه
 رایگان هم می‌توانید کمک کنید:
 - ⭐ **به مخزن ستاره بدهید.** به دیگران کمک می‌کند Snag را پیدا کنند.
 - 🐛 **سایت‌های خراب را گزارش کنید** و گزارش (لاگ) صفحه‌ی جزئیات دانلود را پیوست کنید.
-- 🌍 **Snag را به زبان خودتان ترجمه کنید.** فقط [یک فایل](TRANSLATING.md) است.
+- 🌍 **Snag را به زبان خودتان ترجمه کنید.** در [Weblate](https://hosted.weblate.org/engage/snag/)، همان‌جا در مرورگر.
 - 💜 **به [yt-dlp](https://github.com/yt-dlp/yt-dlp) هم ستاره بدهید.** Snag بدون آن هیچ است.
 
 ## خودتان بسازید
@@ -176,9 +191,24 @@ UI (Flutter, Riverpod)
 | `lib/l10n/` | ترجمه‌ها (`app_<locale>.arb`) و قالب‌بندی متناسب با زبان |
 | `android/app/src/main/kotlin/` | `YtDlpBridge`، `DownloadService` و دریافت لینک از «اشتراک‌گذاری» |
 
+## ترجمه
+
+Snag فعلاً به دو زبان انگلیسی و فارسی است. در **[Hosted Weblate](https://hosted.weblate.org/engage/snag/)** کمک کنید به زبان شما هم برسد: نه گیت لازم است نه فلاتر، و هر چه ترجمه نشود انگلیسی نمایش داده می‌شود. جزئیات در [TRANSLATING.md](TRANSLATING.md).
+
+[![وضعیت ترجمه](https://hosted.weblate.org/widget/snag/multi-auto.svg)](https://hosted.weblate.org/engage/snag/)
+
 ## مشارکت
 
 درخواست‌های ادغام (PR) خوش‌آمدند! [CONTRIBUTING.md](CONTRIBUTING.md) را ببینید و اگر می‌خواهید زبان خودتان را اضافه کنید، [TRANSLATING.md](TRANSLATING.md) را. اگر سایتی کار نمی‌کند، اول **تنظیمات › اجزا › به‌روزرسانی** را امتحان کنید (یا نسخه‌ی شبانه‌ی yt-dlp را روشن کنید). بیشتر خرابی‌ها ظرف چند روز در خود yt-dlp رفع می‌شوند.
+
+## تاریخچه‌ی ستاره‌ها
+
+<a href="https://star-history.com/#SalehTZ/snag&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=SalehTZ/snag&type=Date&theme=dark">
+    <img alt="نمودار تاریخچه‌ی ستاره‌ها" src="https://api.star-history.com/svg?repos=SalehTZ/snag&type=Date" width="600">
+  </picture>
+</a>
 
 ## نکات حقوقی
 

@@ -9,7 +9,9 @@ Thanks for helping! A few ground rules keep Snag small and pleasant.
 
 ## Translations
 
-Adding or improving a language is a great first contribution and needs no Flutter knowledge. See [TRANSLATING.md](TRANSLATING.md).
+Adding or improving a language is a great first contribution and needs no Flutter knowledge. Most languages are translated on [Hosted Weblate](https://hosted.weblate.org/engage/snag/); see [TRANSLATING.md](TRANSLATING.md).
+
+English strings are edited here in `lib/l10n/app_en.arb`, never on Weblate; Weblate picks up new strings on its own. When you rename or remove a key, remove it from every `app_*.arb` too, and merge any open Weblate pull request first so the files don't conflict.
 
 ## Development
 

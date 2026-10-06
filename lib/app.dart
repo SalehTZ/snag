@@ -35,7 +35,8 @@ class _SnagAppState extends ConsumerState<SnagApp> with WidgetsBindingObserver {
 
   /// The chosen language, or the best match for the device's languages.
   Locale _resolveLocale(String? code) {
-    if (code != null) return Locale(code);
+    final saved = savedLocale(code);
+    if (saved != null) return saved;
     return basicLocaleListResolution(
       WidgetsBinding.instance.platformDispatcher.locales,
       AppLocalizations.supportedLocales,
