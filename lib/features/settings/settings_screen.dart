@@ -329,6 +329,15 @@ class SettingsScreen extends ConsumerWidget {
               monospace: true,
               onChanged: (v) => set((s) => s.copyWith(rateLimit: () => v)),
             ),
+            _EnumTile<int>(
+              icon: Icons.cloud_upload_outlined,
+              title: l.settingsSeeding,
+              subtitle: l.settingsSeedingSubtitle,
+              value: s.seedHours,
+              values: const [0, 1, 6, 24],
+              label: (h) => h == 0 ? l.sponsorOff : l.settingsSeedingHours(h),
+              onChanged: (v) => set((s) => s.copyWith(seedHours: v)),
+            ),
             if (isDesktop)
               SwitchListTile(
                 secondary: const Icon(Icons.rocket_launch_outlined),

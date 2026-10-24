@@ -314,5 +314,8 @@
   "purposeAria2": "فایل‌های مستقیم را با چند اتصال هم‌زمان دانلود می‌کند.",
   "sheetDownloadFile": "دانلود فایل",
   "summaryTorrent": "تورنت",
-  "supportNotNow": "الان نه"
+  "supportNotNow": "الان نه",
+  "settingsSeeding": "ادامهٔ اشتراک‌گذاری تورنت‌ها",
+  "settingsSeedingSubtitle": "وقتی به اندازهٔ دریافتی به اشتراک بگذارید یا برنامه بسته شود، زودتر متوقف می‌شود",
+  "settingsSeedingHours": "{count, plural, other{تا {count} ساعت}}"
 }

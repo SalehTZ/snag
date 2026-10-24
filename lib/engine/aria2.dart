@@ -26,6 +26,8 @@ class Aria2 {
   String _secret = '';
   final _gids = <String, String>{};
   final _cancelled = <String>{};
+  // Finished torrents still uploading, by their result path.
+  final _seeding = <String, String>{};
 
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 1);
@@ -45,6 +47,8 @@ class Aria2 {
         'split': '${settings.connections}',
         'max-connection-per-server': '${settings.connections}',
         'min-split-size': '1M',
+        // Torrents only; aria2 also stops once the share ratio reaches 1.0.
+        'seed-time': '${settings.seedHours * 60}',
         if (settings.rateLimit?.trim().isNotEmpty ?? false)
           'max-download-limit': settings.rateLimit!.trim(),
         if (proxy.startsWith('http')) 'all-proxy': proxy,
@@ -61,7 +65,7 @@ class Aria2 {
           gid,
           ['status', 'totalLength', 'completedLength', 'downloadSpeed',
            'errorCode', 'errorMessage', 'dir', 'files', 'bittorrent',
-           'followedBy'],
+           'followedBy', 'seeder'],
         ]) as Map<String, dynamic>;
         final found = resultPath(s);
         if (found != null && found != path) {
@@ -71,6 +75,12 @@ class Aria2 {
           yield MetaEvent(MediaMeta(title: p.basename(found)));
         }
         switch (s['status']) {
+          case 'active' when s['seeder'] == 'true' && path != null:
+            // Downloaded and now sharing: done for the queue, and aria2
+            // keeps uploading until seed-time or the ratio runs out.
+            _seeding[path] = gid;
+            yield FileEvent(path);
+            return;
           case 'active' || 'waiting':
             final progress = progressFrom(s);
             unawaited(_engine.trackFile(taskId,
@@ -102,8 +112,20 @@ class Aria2 {
     } finally {
       _gids.remove(taskId);
       unawaited(_engine.untrackFile(taskId));
-      unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+      if (!_seeding.containsValue(gid)) {
+        unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+      }
     }
+  }
+
+  /// Stops uploading [path], e.g. before it is deleted; the files stay.
+  Future<void> stopSharing(String path) async {
+    final gid = _seeding.remove(path);
+    final endpoint = _endpoint;
+    if (gid == null || endpoint == null) return;
+    try {
+      await _post(await endpoint, 'aria2.forceRemove', [gid]);
+    } catch (_) {} // Already done sharing.
   }
 
   Future<void> pause(String taskId) => _onGid(taskId, 'aria2.forcePause');
@@ -191,9 +213,8 @@ class Aria2 {
         '--max-concurrent-downloads=16',
         '--console-log-level=warn',
         '--summary-interval=0',
-        // Torrents: stop sharing once the download is done, so the queue
-        // can call it finished; keep the DHT between runs for magnets.
-        '--seed-time=0',
+        // Torrents: seed-time is set per download from Settings; keep the
+        // DHT between runs for magnets.
         if (state != null) '--dht-file-path=${p.join(state, 'dht.dat')}',
         // shortcut: cookies are read once per aria2 run; a changed cookie
         // file applies after a restart of Snag.

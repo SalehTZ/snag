@@ -72,6 +72,8 @@ abstract final class LibraryActions {
     );
     if (confirmed != true) return;
     try {
+      // A torrent still sharing holds the file open.
+      await ref.read(aria2Provider).stopSharing(item.filePath!);
       final f = File(item.filePath!);
       if (await f.exists()) await f.delete();
     } catch (e) {

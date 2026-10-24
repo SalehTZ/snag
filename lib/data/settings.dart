@@ -33,6 +33,7 @@ class AppSettings {
     this.useAria2c = false,
     this.concurrency = 2,
     this.connections = 8,
+    this.seedHours = 0,
     this.restrictFilenames = false,
     this.ytDlpPath,
     this.ffmpegPath,
@@ -77,6 +78,9 @@ class AppSettings {
 
   /// aria2 connections per file download (and per video, with aria2 on).
   final int connections;
+
+  /// Hours a finished torrent keeps uploading; 0 stops right away.
+  final int seedHours;
   final bool restrictFilenames;
 
   /// Manual binary overrides (desktop). Null = managed by Snag.
@@ -117,6 +121,7 @@ class AppSettings {
     bool? useAria2c,
     int? concurrency,
     int? connections,
+    int? seedHours,
     bool? restrictFilenames,
     String? Function()? ytDlpPath,
     String? Function()? ffmpegPath,
@@ -152,6 +157,7 @@ class AppSettings {
       useAria2c: useAria2c ?? this.useAria2c,
       concurrency: concurrency ?? this.concurrency,
       connections: connections ?? this.connections,
+      seedHours: seedHours ?? this.seedHours,
       restrictFilenames: restrictFilenames ?? this.restrictFilenames,
       ytDlpPath: ytDlpPath != null ? ytDlpPath() : this.ytDlpPath,
       ffmpegPath: ffmpegPath != null ? ffmpegPath() : this.ffmpegPath,
@@ -187,6 +193,7 @@ class AppSettings {
         'useAria2c': useAria2c,
         'concurrency': concurrency,
         'connections': connections,
+        'seedHours': seedHours,
         'restrictFilenames': restrictFilenames,
         'ytDlpPath': ytDlpPath,
         'ffmpegPath': ffmpegPath,
@@ -228,6 +235,7 @@ class AppSettings {
       useAria2c: j['useAria2c'] as bool? ?? d.useAria2c,
       concurrency: (j['concurrency'] as int? ?? d.concurrency).clamp(1, 8),
       connections: (j['connections'] as int? ?? d.connections).clamp(1, 16),
+      seedHours: (j['seedHours'] as int? ?? d.seedHours).clamp(0, 24),
       restrictFilenames: j['restrictFilenames'] as bool? ?? d.restrictFilenames,
       ytDlpPath: j['ytDlpPath'] as String?,
       ffmpegPath: j['ffmpegPath'] as String?,

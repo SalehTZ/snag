@@ -749,5 +749,15 @@
   "purposeAria2": "Downloads plain files over several connections at once.",
   "sheetDownloadFile": "Download file",
   "summaryTorrent": "Torrent",
-  "supportNotNow": "Not now"
+  "supportNotNow": "Not now",
+  "settingsSeeding": "Keep sharing torrents",
+  "settingsSeedingSubtitle": "Stops early once you have shared as much as you got, or when the app closes",
+  "settingsSeedingHours": "{count, plural, =1{Up to 1 hour} other{Up to {count} hours}}",
+  "@settingsSeedingHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
