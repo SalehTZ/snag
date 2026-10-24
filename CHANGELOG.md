@@ -2,6 +2,20 @@
 
 What's new in each Snag release. When a version is tagged, the release workflow puts its section at the top of the GitHub release notes, followed by the download table and checksums. Write for people using Snag: what they can do now, in plain words, one line per paragraph or item (GitHub shows line breaks as they are).
 
+## 0.3.0 - 2026-10-24
+
+More control over torrents and downloads, and a closer look at what each download is doing.
+
+### New
+
+- **Open .torrent files.** Pick one on Home, drop it on the window on desktop, or use "Open with" or "Share" on Android.
+- **Choose files inside a torrent.** Snag lists what a torrent or magnet contains before anything downloads, so you can tick only the files you want.
+- **Keep sharing torrents.** Settings > Network lets finished torrents keep uploading for up to 1, 6 or 24 hours while Snag is open. Library shows a Sharing badge and a Stop sharing action, and turning the setting off stops all sharing.
+- **Connections per download.** Each download can use its own number of connections; Settings stays the default.
+- **Downloads at once, from the Queue.** Change how many downloads run together right from the Waiting header.
+- **Live details.** Tap a file or torrent download in the Queue to see its speed, connections, a map of the pieces filling in, and for torrents the peers, share ratio and progress of each file.
+- **Clear list in Library.** Empty the whole list in one step, with Undo. Your files stay where they are.
+
 ## 0.2.0 - 2026-10-24
 
 Snag now downloads more than videos: plain files, torrents and magnet links, with pause and resume.
