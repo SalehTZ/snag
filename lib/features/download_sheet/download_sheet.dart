@@ -70,6 +70,7 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
   String? _templateId;
   bool _advanced = false;
   late Set<int> _selected;
+  late int _connections;
 
   MediaInfo get info => widget.info;
 
@@ -80,6 +81,7 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
     _mode = s.defaultMode;
     _audio = s.defaultAudioFormat;
     _subs = s.embedSubtitles;
+    _connections = s.connections;
     final options = _qualityOptions;
     _quality = options.contains(s.defaultQuality)
         ? s.defaultQuality
@@ -114,6 +116,7 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
       subtitles: _subs,
       templateArgs: t?.args,
       templateName: t?.name,
+      connections: ref.read(settingsProvider).useAria2c ? _connections : null,
     );
   }
 
@@ -281,6 +284,14 @@ class _DownloadSheetState extends ConsumerState<DownloadSheet> {
                         ),
                     ],
                     onChanged: (v) => setState(() => _templateId = v),
+                  ),
+                ],
+                if (ref.watch(settingsProvider).useAria2c) ...[
+                  const SizedBox(height: 8),
+                  ConnectionsTile(
+                    title: l.sheetConnections,
+                    value: _connections,
+                    onChanged: (v) => setState(() => _connections = v),
                   ),
                 ],
                 if (!info.isPlaylist && info.formats.isNotEmpty && !usingTemplate) ...[

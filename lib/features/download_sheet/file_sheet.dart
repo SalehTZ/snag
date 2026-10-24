@@ -57,6 +57,7 @@ class _FileSheetState extends ConsumerState<FileSheet> {
   List<TorrentFile>? _files;
   bool _filesFailed = false;
   Set<int> _selected = {};
+  late int _connections;
 
   RemoteFile get file => widget.file;
 
@@ -65,6 +66,7 @@ class _FileSheetState extends ConsumerState<FileSheet> {
     super.initState();
     _aria2 = ref.read(aria2Provider);
     _settings = ref.read(settingsProvider);
+    _connections = _settings.connections;
     if (!isTorrent(file.url)) return;
     // Picking is optional: Download works for everything while this runs.
     _aria2
@@ -104,6 +106,7 @@ class _FileSheetState extends ConsumerState<FileSheet> {
             url: file.url,
             kind: DownloadKind.file,
             files: some ? (_selected.toList()..sort()) : null,
+            connections: isTorrent(file.url) ? null : _connections,
           ),
           MediaMeta(title: file.name, uploader: file.host),
         );
@@ -200,6 +203,15 @@ class _FileSheetState extends ConsumerState<FileSheet> {
                   selected: _selected,
                   onChanged: (s) => setState(() => _selected = s),
                 ),
+              ),
+            ],
+            // Torrents fetch from peers; split only speeds up servers.
+            if (!isTorrent(file.url)) ...[
+              const SizedBox(height: 12),
+              ConnectionsTile(
+                title: l.sheetConnections,
+                value: _connections,
+                onChanged: (v) => setState(() => _connections = v),
               ),
             ],
             const SizedBox(height: 24),

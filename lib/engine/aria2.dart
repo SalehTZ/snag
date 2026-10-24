@@ -28,11 +28,17 @@ class Aria2 {
   final _gids = <String, String>{};
   final _cancelled = <String>{};
   final _probes = <String, String>{};
-  // Finished torrents still uploading, by their result path.
-  final _seeding = <String, String>{};
+  final _seeding = ValueNotifier(const <String, String>{});
+
+  /// Finished torrents still uploading: their gids, by result path.
+  ValueListenable<Map<String, String>> get seeding => _seeding;
 
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 1);
+
+  /// How often Snag checks whether aria2 is done sharing.
+  @visibleForTesting
+  static Duration sharingInterval = const Duration(seconds: 10);
 
   Stream<EngineEvent> download({
     required DownloadSpec spec,
@@ -41,10 +47,11 @@ class Aria2 {
     required String taskId,
   }) async* {
     _cancelled.remove(taskId);
+    final connections = spec.connections ?? settings.connections;
     var gid = await _add(settings, spec.url, {
       'dir': outputDir,
-      'split': '${settings.connections}',
-      'max-connection-per-server': '${settings.connections}',
+      'split': '$connections',
+      'max-connection-per-server': '$connections',
       'min-split-size': '1M',
       // Torrents only; aria2 also stops once the share ratio reaches 1.0.
       'seed-time': '${settings.seedHours * 60}',
@@ -77,7 +84,8 @@ class Aria2 {
           case 'active' when s['seeder'] == 'true' && path != null:
             // Downloaded and now sharing: done for the queue, and aria2
             // keeps uploading until seed-time or the ratio runs out.
-            _seeding[path] = gid;
+            _seeding.value = {..._seeding.value, path: gid};
+            unawaited(_watchSharing());
             yield FileEvent(path);
             return;
           case 'active' || 'waiting':
@@ -111,7 +119,7 @@ class Aria2 {
     } finally {
       _gids.remove(taskId);
       unawaited(_engine.untrackFile(taskId));
-      if (!_seeding.containsValue(gid)) {
+      if (!_seeding.value.containsValue(gid)) {
         unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
       }
     }
@@ -239,12 +247,50 @@ class Aria2 {
 
   /// Stops uploading [path], e.g. before it is deleted; the files stay.
   Future<void> stopSharing(String path) async {
-    final gid = _seeding.remove(path);
+    final gid = _seeding.value[path];
+    if (gid == null) return;
+    _seeding.value = {..._seeding.value}..remove(path);
     final endpoint = _endpoint;
-    if (gid == null || endpoint == null) return;
+    if (endpoint == null) return;
     try {
       await _post(await endpoint, 'aria2.forceRemove', [gid]);
     } catch (_) {} // Already done sharing.
+  }
+
+  /// Stops every torrent that is still uploading.
+  Future<void> stopAllSharing() =>
+      Future.wait([for (final path in _seeding.value.keys) stopSharing(path)]);
+
+  bool _watching = false;
+
+  /// Drops torrents from [seeding] once aria2 is done with them, after
+  /// seed-time or the share ratio runs out.
+  Future<void> _watchSharing() async {
+    if (_watching) return;
+    _watching = true;
+    try {
+      while (_seeding.value.isNotEmpty) {
+        await Future<void>.delayed(sharingInterval);
+        final endpoint = _endpoint;
+        for (final MapEntry(key: path, value: gid)
+            in _seeding.value.entries.toList()) {
+          try {
+            final s = await _post(await endpoint!, 'aria2.tellStatus', [
+              gid,
+              ['status'],
+            ]) as Map<String, dynamic>;
+            if (s['status'] == 'active') continue;
+            unawaited(_post(await endpoint, 'aria2.removeDownloadResult', [gid])
+                .catchError((_) => null));
+          } catch (_) {} // aria2 is gone, and the torrent with it.
+          if (_seeding.value[path] == gid) {
+            _seeding.value = {..._seeding.value}..remove(path);
+          }
+        }
+      }
+    } finally {
+      _watching = false;
+    }
   }
 
   Future<void> pause(String taskId) => _onGid(taskId, 'aria2.forcePause');

@@ -222,6 +222,7 @@ class DownloadSpec {
     this.templateName,
     this.kind = DownloadKind.media,
     this.files,
+    this.connections,
   });
 
   final String url;
@@ -244,6 +245,9 @@ class DownloadSpec {
   /// Torrents: aria2's 1-based indexes of the files to fetch; null for all.
   final List<int>? files;
 
+  /// aria2 connections for this download; null follows Settings.
+  final int? connections;
+
   DownloadSpec withUrl(String url) => DownloadSpec(
         url: url,
         mode: mode,
@@ -255,6 +259,7 @@ class DownloadSpec {
         templateName: templateName,
         kind: kind,
         files: files,
+        connections: connections,
       );
 
   Map<String, Object?> toJson() => {
@@ -268,6 +273,7 @@ class DownloadSpec {
         'templateArgs': templateArgs,
         'templateName': templateName,
         if (files != null) 'files': files,
+        if (connections != null) 'connections': connections,
       };
 
   factory DownloadSpec.fromJson(Map<String, dynamic> j) => DownloadSpec(
@@ -282,6 +288,7 @@ class DownloadSpec {
         templateName: j['templateName'] as String?,
         kind: DownloadKind.values.byNameOr(j['kind'], DownloadKind.media),
         files: (j['files'] as List?)?.cast<int>(),
+        connections: (j['connections'] as int?)?.clamp(1, 16),
       );
 }
 

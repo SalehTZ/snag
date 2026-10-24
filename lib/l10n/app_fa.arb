@@ -322,5 +322,9 @@
   "settingsSeedingHours": "{count, plural, other{تا {count} ساعت}}",
   "sheetDownloadFiles": "{count, plural, other{دانلود {count} فایل}}",
   "sheetTorrentReadingFiles": "در حال خواندن فهرست فایل‌ها…",
-  "sheetTorrentFilesFailed": "فهرست فایل‌ها خوانده نشد. با دانلود، همه‌چیز گرفته می‌شود."
+  "sheetTorrentFilesFailed": "فهرست فایل‌ها خوانده نشد. با دانلود، همه‌چیز گرفته می‌شود.",
+  "sheetConnections": "تعداد اتصال‌ها",
+  "librarySharing": "در حال اشتراک",
+  "libraryStopSharing": "توقف اشتراک‌گذاری",
+  "queueAtATime": "{count} همزمان"
 }

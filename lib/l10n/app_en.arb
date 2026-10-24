@@ -772,5 +772,17 @@
     }
   },
   "sheetTorrentReadingFiles": "Reading the file list…",
-  "sheetTorrentFilesFailed": "Couldn't read the file list. Download gets everything."
+  "sheetTorrentFilesFailed": "Couldn't read the file list. Download gets everything.",
+  "sheetConnections": "Connections",
+  "librarySharing": "Sharing",
+  "libraryStopSharing": "Stop sharing",
+  "queueAtATime": "{count} at a time",
+  "@queueAtATime": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  }
 }
