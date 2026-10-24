@@ -9,6 +9,7 @@ import '../../core/platform_actions.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/theme.dart';
 import '../../data/providers.dart';
+import '../../engine/file_probe.dart';
 import '../../engine/models.dart';
 import '../../engine/ytdlp_engine.dart';
 import '../../l10n/l10n.dart';
@@ -16,6 +17,7 @@ import '../../shell.dart';
 import '../../widgets/common.dart';
 import '../../widgets/shapes.dart';
 import '../download_sheet/download_sheet.dart';
+import '../download_sheet/file_sheet.dart';
 import '../queue/download_manager.dart';
 import 'recent_strip.dart';
 
@@ -110,18 +112,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _fetching = true;
       _error = null;
     });
+    final settings = ref.read(settingsProvider);
     try {
-      final info = await ref
-          .read(engineProvider)
-          .fetchInfo(url, ref.read(settingsProvider));
+      // A link to a .zip or .apk: skip the seconds yt-dlp spends saying no.
+      final file = looksLikeFile(url)
+          ? await probeFile(url, proxy: settings.proxy)
+          : null;
       if (!mounted || request != _request) return;
-      setState(() => _fetching = false);
-      final queued = await showDownloadSheet(context, info);
-      if (queued == true && mounted) {
-        _controller.clear();
-        _dismissedClipboard = url;
-        setState(() => _clipboardUrl = null);
+      if (file != null) return await _offer(url, showFileSheet(context, file));
+
+      final MediaInfo info;
+      try {
+        info = await ref.read(engineProvider).fetchInfo(url, settings);
+      } on EngineException catch (e) {
+        if (e.kind != EngineErrorKind.unsupportedUrl &&
+            e.kind != EngineErrorKind.noMedia) {
+          rethrow;
+        }
+        // Not a media page; maybe a plain file. If not, yt-dlp's answer stands.
+        final file =
+            await probeFile(url, proxy: settings.proxy).catchError((_) => null);
+        if (file == null) rethrow;
+        if (!mounted || request != _request) return;
+        return await _offer(url, showFileSheet(context, file));
       }
+      if (!mounted || request != _request) return;
+      await _offer(url, showDownloadSheet(context, info));
     } catch (e) {
       if (!mounted || request != _request) return;
       setState(() {
@@ -130,6 +146,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ? e
             : EngineException(EngineErrorKind.unknown, raw: '$e');
       });
+    }
+  }
+
+  /// Shows [sheet] and clears the box once something was queued from it.
+  Future<void> _offer(String url, Future<bool?> sheet) async {
+    setState(() => _fetching = false);
+    final queued = await sheet;
+    if (queued == true && mounted) {
+      _controller.clear();
+      _dismissedClipboard = url;
+      setState(() => _clipboardUrl = null);
     }
   }
 

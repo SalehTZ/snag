@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 
 enum DownloadMode { video, audio }
 
+/// Which engine fetches it: yt-dlp for media pages, aria2 for plain files.
+enum DownloadKind { media, file }
+
 enum VideoQuality {
   best(null, 'Best'),
   p2160(2160, '4K'),
@@ -217,9 +220,11 @@ class DownloadSpec {
     this.subtitles,
     this.templateArgs,
     this.templateName,
+    this.kind = DownloadKind.media,
   });
 
   final String url;
+  final DownloadKind kind;
   final DownloadMode mode;
   final VideoQuality quality;
   final AudioFormat audioFormat;
@@ -244,10 +249,12 @@ class DownloadSpec {
         subtitles: subtitles,
         templateArgs: templateArgs,
         templateName: templateName,
+        kind: kind,
       );
 
   Map<String, Object?> toJson() => {
         'url': url,
+        'kind': kind.name,
         'mode': mode.name,
         'quality': quality.name,
         'audioFormat': audioFormat.name,
@@ -267,6 +274,7 @@ class DownloadSpec {
         subtitles: j['subtitles'] as bool?,
         templateArgs: j['templateArgs'] as String?,
         templateName: j['templateName'] as String?,
+        kind: DownloadKind.values.byNameOr(j['kind'], DownloadKind.media),
       );
 }
 

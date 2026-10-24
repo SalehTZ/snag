@@ -22,6 +22,8 @@ enum EngineErrorKind {
   folderNotWritable,
   engineStart,
   invalidLink,
+  aria2Missing,
+  fileGone,
   unknown,
 }
 
@@ -75,6 +77,14 @@ abstract class YtDlpEngine {
       List<String> args, AppSettings settings, String taskId);
 
   Future<void> cancel(String taskId);
+
+  /// Starts aria2c in the background with [args] (see `aria2.dart`).
+  Future<void> startAria2(List<String> args, AppSettings settings);
+
+  /// Lets the platform's download notification count a file download.
+  Future<void> trackFile(String taskId, {String? title, double? fraction}) async {}
+
+  Future<void> untrackFile(String taskId) async {}
 
   Future<String?> version(AppSettings settings);
 

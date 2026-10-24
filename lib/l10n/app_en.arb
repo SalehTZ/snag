@@ -500,8 +500,8 @@
   "settingsSpeedLimit": "Speed limit",
   "settingsUnlimited": "Unlimited",
   "settingsSpeedLimitHelper": "Bytes per second, e.g. 2M or 500K",
-  "settingsAria2c": "Use aria2c",
-  "settingsAria2cSubtitle": "Faster multi-connection downloads (aria2c must be installed)",
+  "settingsAria2c": "Use aria2 for video sites too",
+  "settingsAria2cSubtitle": "Faster video downloads over several connections",
   "settingsPowerTools": "Power tools",
   "settingsTemplates": "Command templates",
   "settingsTemplatesSubtitle": "Saved sets of raw yt\u2060-\u2060dlp flags",
@@ -738,5 +738,14 @@
       }
     }
   },
-  "folderNotAllowedOk": "Choose another folder"
+  "folderNotAllowedOk": "Choose another folder",
+  "errorAria2Missing": "aria2 is needed for plain file links. Install it from Settings > Components.",
+  "errorFileGone": "The file is not at this link anymore. The link may have expired.",
+  "summaryFile": "File",
+  "statusPaused": "Paused",
+  "queuePause": "Pause",
+  "queueResume": "Resume",
+  "settingsConnections": "Connections per download",
+  "purposeAria2": "Downloads plain files over several connections at once.",
+  "sheetDownloadFile": "Download file"
 }

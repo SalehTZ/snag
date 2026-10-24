@@ -170,13 +170,28 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: Slider(
                 value: s.concurrency.toDouble(),
                 min: 1,
-                max: 5,
-                divisions: 4,
+                max: 8,
+                divisions: 7,
                 label: context.fmt.digits(s.concurrency),
                 onChanged: (v) =>
                     set((s) => s.copyWith(concurrency: v.round())),
               ),
               trailing: Text(context.fmt.digits(s.concurrency),
+                  style: theme.textTheme.titleMedium),
+            ),
+            ListTile(
+              leading: const Icon(Icons.call_split_rounded),
+              title: Text(l.settingsConnections),
+              subtitle: Slider(
+                value: s.connections.toDouble(),
+                min: 1,
+                max: 16,
+                divisions: 15,
+                label: context.fmt.digits(s.connections),
+                onChanged: (v) =>
+                    set((s) => s.copyWith(connections: v.round())),
+              ),
+              trailing: Text(context.fmt.digits(s.connections),
                   style: theme.textTheme.titleMedium),
             ),
             SwitchListTile(

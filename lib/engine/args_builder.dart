@@ -74,7 +74,8 @@ abstract final class ArgsBuilder {
       if (_has(s.rateLimit)) ...['--limit-rate', s.rateLimit!.trim()],
       if (s.useAria2c) ...[
         '--downloader', tools.aria2c ?? 'aria2c',
-        '--downloader-args', 'aria2c:-x 8 -s 8 -k 1M',
+        '--downloader-args',
+        'aria2c:-x ${s.connections} -s ${s.connections} -k 1M',
       ],
     ];
 
