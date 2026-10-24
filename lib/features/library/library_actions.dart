@@ -46,6 +46,47 @@ abstract final class LibraryActions {
         onAction: () => history.add(item));
   }
 
+  /// Empties the list but leaves every file on disk. Torrents still sharing
+  /// stay, so they can still be stopped from their row.
+  static Future<void> clearList(BuildContext context, WidgetRef ref) async {
+    final l = context.l10n;
+    final all = ref.read(historyProvider);
+    final seeding = ref.read(aria2Provider).seeding.value;
+    final cleared =
+        all.where((h) => !seeding.containsKey(h.filePath)).toList();
+    final sharing = all.length - cleared.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.clear_all_rounded),
+        title: Text(l.libraryClearTitle),
+        content: Text([
+          l.libraryClearBody(cleared.length),
+          if (sharing > 0) l.libraryClearKeepsSharing(sharing),
+        ].join(' ')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.commonCancel),
+          ),
+          FilledButton(
+            autofocus: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.libraryClearList),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final history = ref.read(historyProvider.notifier);
+    final ids = {for (final h in cleared) h.id};
+    history.removeWhere((h) => ids.contains(h.id));
+    if (context.mounted) {
+      showSnack(context, l.libraryCleared,
+          actionLabel: l.commonUndo, onAction: () => history.restore(cleared));
+    }
+  }
+
   /// Destructive: confirm with focus on the safe action.
   static Future<void> deleteFile(
       BuildContext context, WidgetRef ref, HistoryItem item) async {

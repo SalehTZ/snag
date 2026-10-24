@@ -137,7 +137,12 @@ class HistoryNotifier extends Notifier<List<HistoryItem>> {
 
   void remove(String id) => _commit(state.where((h) => h.id != id).toList());
 
-  void clear() => _commit(const []);
+  void removeWhere(bool Function(HistoryItem h) test) =>
+      _commit(state.where((h) => !test(h)).toList());
+
+  /// Puts entries back (undo), newest first, next to anything added since.
+  void restore(List<HistoryItem> items) => _commit([...state, ...items]
+    ..sort((a, b) => b.finishedAt.compareTo(a.finishedAt)));
 }
 
 final historyProvider =

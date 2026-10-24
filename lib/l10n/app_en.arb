@@ -332,6 +332,27 @@
     }
   },
   "libraryDeleted": "File deleted",
+  "libraryClearList": "Clear list",
+  "libraryClearTitle": "Clear the library?",
+  "libraryClearBody": "{count, plural, =1{1 download leaves this list.} other{{count} downloads leave this list.}} Files stay on your device.",
+  "@libraryClearBody": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "libraryClearKeepsSharing": "{count, plural, =1{1 torrent still sharing stays.} other{{count} torrents still sharing stay.}}",
+  "@libraryClearKeepsSharing": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "libraryCleared": "Library cleared. Files are still on disk.",
   "timeJustNow": "just now",
   "timeMinutesAgo": "{count, plural, =1{1 min ago} other{{count} min ago}}",
   "@timeMinutesAgo": {
