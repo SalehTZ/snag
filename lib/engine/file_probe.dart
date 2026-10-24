@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'ytdlp_engine.dart';
 
@@ -45,6 +46,25 @@ RemoteFile magnetFile(String url) {
 bool isTorrent(String url) =>
     isMagnet(url) ||
     (Uri.tryParse(url)?.path.toLowerCase().endsWith('.torrent') ?? false);
+
+/// A .torrent file from this device, copied into Snag's own folder so a
+/// retry still finds it after the original is moved or cleaned up.
+/// Null when [bytes] are not a torrent.
+Future<RemoteFile?> keepTorrent(String name, List<int> bytes) async {
+  // A torrent is a bencoded dictionary, which always starts with 'd'.
+  if (bytes.isEmpty || bytes.first != 0x64) return null;
+  final support = await getApplicationSupportDirectory();
+  // One folder per file: two torrents may share a name.
+  final dir = Directory(p.join(support.path, 'torrents',
+      '${DateTime.now().microsecondsSinceEpoch}'));
+  await dir.create(recursive: true);
+  final file = File(p.join(dir.path, _safe(name) ?? 'download.torrent'));
+  await file.writeAsBytes(bytes);
+  return RemoteFile(
+    url: file.uri.toString(),
+    name: p.basenameWithoutExtension(file.path),
+  );
+}
 
 bool looksLikeFile(String url) {
   final path = Uri.tryParse(url)?.path ?? '';

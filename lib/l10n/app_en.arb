@@ -64,7 +64,9 @@
   },
   "homeLookingUp": "Looking it up... tap to cancel",
   "homeDropTitle": "Drop the link to snag it",
-  "homeDropNotLink": "Drop a link from your browser, not a file.",
+  "homeDropNotLink": "Drop a link or a .torrent file.",
+  "homeOpenTorrent": "Open a .torrent file",
+  "homeNotTorrent": "That file isn't a torrent.",
   "homeSupportedSites": "See every supported site",
   "homeRecent": "Recently snagged",
   "homeSeeAll": "See all",
@@ -750,6 +752,16 @@
   "sheetDownloadFile": "Download file",
   "summaryTorrent": "Torrent",
   "supportNotNow": "Not now",
+  "settingsSeeding": "Keep sharing torrents",
+  "settingsSeedingSubtitle": "Stops early once you have shared as much as you got, or when the app closes",
+  "settingsSeedingHours": "{count, plural, =1{Up to 1 hour} other{Up to {count} hours}}",
+  "@settingsSeedingHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sheetDownloadFiles": "{count, plural, =1{Download 1 file} other{Download {count} files}}",
   "@sheetDownloadFiles": {
     "placeholders": {

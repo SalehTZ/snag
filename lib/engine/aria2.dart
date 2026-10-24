@@ -28,6 +28,8 @@ class Aria2 {
   final _gids = <String, String>{};
   final _cancelled = <String>{};
   final _probes = <String, String>{};
+  // Finished torrents still uploading, by their result path.
+  final _seeding = <String, String>{};
 
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 1);
@@ -39,25 +41,18 @@ class Aria2 {
     required String taskId,
   }) async* {
     _cancelled.remove(taskId);
-    final options = {
+    var gid = await _add(settings, spec.url, {
       'dir': outputDir,
       'split': '${settings.connections}',
       'max-connection-per-server': '${settings.connections}',
       'min-split-size': '1M',
+      // Torrents only; aria2 also stops once the share ratio reaches 1.0.
+      'seed-time': '${settings.seedHours * 60}',
       if (settings.rateLimit?.trim().isNotEmpty ?? false)
         'max-download-limit': settings.rateLimit!.trim(),
       ..._proxy(settings),
       if (spec.files case final files?) 'select-file': files.join(','),
-    };
-    // A magnet whose file list was already read skips fetching it again.
-    final saved = await _savedMetadata(spec.url);
-    var gid = await (saved != null
-        ? _call(settings, 'aria2.addTorrent',
-            [base64Encode(saved), const <String>[], options])
-        : _call(settings, 'aria2.addUri', [
-            [spec.url],
-            options
-          ])) as String;
+    });
     _gids[taskId] = gid;
     if (_cancelled.contains(taskId)) await cancel(taskId);
 
@@ -69,7 +64,7 @@ class Aria2 {
           gid,
           ['status', 'totalLength', 'completedLength', 'downloadSpeed',
            'errorCode', 'errorMessage', 'dir', 'files', 'bittorrent',
-           'followedBy'],
+           'followedBy', 'seeder'],
         ]) as Map<String, dynamic>;
         final found = resultPath(s);
         if (found != null && found != path) {
@@ -79,6 +74,12 @@ class Aria2 {
           yield MetaEvent(MediaMeta(title: p.basename(found)));
         }
         switch (s['status']) {
+          case 'active' when s['seeder'] == 'true' && path != null:
+            // Downloaded and now sharing: done for the queue, and aria2
+            // keeps uploading until seed-time or the ratio runs out.
+            _seeding[path] = gid;
+            yield FileEvent(path);
+            return;
           case 'active' || 'waiting':
             final progress = progressFrom(s);
             unawaited(_engine.trackFile(taskId,
@@ -110,7 +111,9 @@ class Aria2 {
     } finally {
       _gids.remove(taskId);
       unawaited(_engine.untrackFile(taskId));
-      unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+      if (!_seeding.containsValue(gid)) {
+        unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+      }
     }
   }
 
@@ -120,19 +123,22 @@ class Aria2 {
   Future<List<TorrentFile>> torrentFiles(
       String url, AppSettings settings) async {
     final dir = await _metadataDir();
-    var gid = await _call(settings, 'aria2.addUri', [
-      [url],
-      {
-        'dir': dir,
-        'pause-metadata': 'true',
-        // Kept for the real download, see _savedMetadata.
-        'bt-save-metadata': 'true',
-        'follow-torrent': 'mem',
-        ..._proxy(settings),
-      },
-    ]) as String;
+    // A torrent aria2 is handed whole has its file list at once.
+    final whole = url.startsWith('file:') || await _savedMetadata(url) != null;
+    var gid = await _add(settings, url, {
+      'dir': dir,
+      if (whole) 'pause': 'true' else 'pause-metadata': 'true',
+      // Kept for the real download, see _savedMetadata.
+      'bt-save-metadata': 'true',
+      'follow-torrent': 'mem',
+      ..._proxy(settings),
+    });
     _probes[url] = gid;
     try {
+      if (whole) {
+        final files = await _call(settings, 'aria2.getFiles', [gid]);
+        return torrentFilesFrom(files as List, dir);
+      }
       while (_probes[url] == gid) {
         final s = await _call(settings, 'aria2.tellStatus', [
           gid,
@@ -189,6 +195,26 @@ class Aria2 {
     await _tryCall(settings, 'aria2.removeDownloadResult', [gid]);
   }
 
+  /// Adds [url] to aria2 and returns its gid. A .torrent Snag keeps on disk,
+  /// or a magnet's saved metadata, goes in by content: aria2 can't open
+  /// file:// links, and a magnet need not ask peers for its metadata twice.
+  Future<String> _add(
+      AppSettings settings, String url, Map<String, String> options) async {
+    final saved = await _savedMetadata(url);
+    final torrent = url.startsWith('file:')
+        ? await _readTorrent(url)
+        : saved == null
+            ? null
+            : base64Encode(saved);
+    return await (torrent != null
+        ? _call(settings, 'aria2.addTorrent',
+            [torrent, const <String>[], options])
+        : _call(settings, 'aria2.addUri', [
+            [url],
+            options
+          ])) as String;
+  }
+
   static Future<String> _metadataDir() => getTemporaryDirectory().then(
       (d) => p.join(d.path, 'torrents'),
       onError: (_) => p.join(Directory.systemTemp.path, 'snag-torrents'));
@@ -209,6 +235,16 @@ class Aria2 {
   static Map<String, String> _proxy(AppSettings settings) {
     final proxy = settings.proxy?.trim() ?? '';
     return proxy.startsWith('http') ? {'all-proxy': proxy} : const {};
+  }
+
+  /// Stops uploading [path], e.g. before it is deleted; the files stay.
+  Future<void> stopSharing(String path) async {
+    final gid = _seeding.remove(path);
+    final endpoint = _endpoint;
+    if (gid == null || endpoint == null) return;
+    try {
+      await _post(await endpoint, 'aria2.forceRemove', [gid]);
+    } catch (_) {} // Already done sharing.
   }
 
   Future<void> pause(String taskId) => _onGid(taskId, 'aria2.forcePause');
@@ -296,9 +332,8 @@ class Aria2 {
         '--max-concurrent-downloads=16',
         '--console-log-level=warn',
         '--summary-interval=0',
-        // Torrents: stop sharing once the download is done, so the queue
-        // can call it finished; keep the DHT between runs for magnets.
-        '--seed-time=0',
+        // Torrents: seed-time is set per download from Settings; keep the
+        // DHT between runs for magnets.
         if (state != null) '--dht-file-path=${p.join(state, 'dht.dat')}',
         // shortcut: cookies are read once per aria2 run; a changed cookie
         // file applies after a restart of Snag.
@@ -320,6 +355,14 @@ class Aria2 {
     } catch (_) {
       _endpoint = null;
       rethrow;
+    }
+  }
+
+  static Future<String> _readTorrent(String url) async {
+    try {
+      return base64Encode(await File.fromUri(Uri.parse(url)).readAsBytes());
+    } on FileSystemException catch (e) {
+      throw EngineException(EngineErrorKind.fileGone, details: '$e');
     }
   }
 

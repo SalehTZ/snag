@@ -54,7 +54,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   void initState() {
     super.initState();
     _shareSub = PlatformActions.sharedText().listen((text) {
-      final url = extractUrl(text);
+      // A .torrent opened with Snag arrives as a file:// link.
+      final url = extractUrl(text) ?? (text.startsWith('file:') ? text : null);
       if (url == null) return;
       ref.read(tabProvider.notifier).go(AppTab.home);
       ref.read(incomingUrlProvider.notifier).push(url);

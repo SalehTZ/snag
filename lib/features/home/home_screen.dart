@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/app_info.dart';
 import '../../core/format.dart';
@@ -79,6 +83,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final url = ref.read(incomingUrlProvider);
     if (url == null) return;
     ref.read(incomingUrlProvider.notifier).consume();
+    // A .torrent opened with Snag, copied out by the platform side.
+    if (url.startsWith('file:')) {
+      _openTorrentFile(Uri.parse(url).toFilePath());
+      return;
+    }
     _controller.text = url;
     _fetch();
   }
@@ -198,11 +207,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onAction: () => ref.read(tabProvider.notifier).go(AppTab.queue));
   }
 
+  Future<void> _pickTorrent() async {
+    final picked = await FilePicker.pickFile(
+        type: FileType.custom, allowedExtensions: const ['torrent']);
+    if (picked == null) return;
+    await _openTorrent(picked.name, await picked.readAsBytes());
+  }
+
+  Future<void> _openTorrentFile(String path) async {
+    try {
+      await _openTorrent(p.basename(path), await File(path).readAsBytes());
+    } on FileSystemException {
+      if (mounted) showSnack(context, context.l10n.homeNotTorrent);
+    }
+  }
+
+  Future<void> _openTorrent(String name, List<int> bytes) async {
+    final file = await keepTorrent(name, bytes);
+    if (!mounted) return;
+    if (file == null) {
+      showSnack(context, context.l10n.homeNotTorrent);
+      return;
+    }
+    await showFileSheet(context, file);
+  }
+
   void _onDrop(DropDoneDetails details) {
+    setState(() => _dragging = false);
+    final torrent = details.files
+        .where((f) => f.path.toLowerCase().endsWith('.torrent'))
+        .firstOrNull;
+    if (torrent != null) {
+      _openTorrentFile(torrent.path);
+      return;
+    }
     final text = details.rawText ??
         details.files.map((f) => f.path).join(' ');
     final url = extractUrl(text);
-    setState(() => _dragging = false);
     if (url == null) {
       showSnack(context, context.l10n.homeDropNotLink);
       return;
@@ -326,11 +367,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const RecentStrip(),
             const SizedBox(height: 24),
             Center(
-              child: TextButton.icon(
-                onPressed: () =>
-                    PlatformActions.openLink(AppInfo.supportedSitesUrl),
-                icon: const Icon(Icons.public_rounded, size: 18),
-                label: Text(l.homeSupportedSites),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  TextButton.icon(
+                    onPressed: _fetching ? null : _pickTorrent,
+                    icon: const Icon(Icons.file_open_outlined, size: 18),
+                    label: Text(l.homeOpenTorrent),
+                  ),
+                  TextButton.icon(
+                    onPressed: () =>
+                        PlatformActions.openLink(AppInfo.supportedSitesUrl),
+                    icon: const Icon(Icons.public_rounded, size: 18),
+                    label: Text(l.homeSupportedSites),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
