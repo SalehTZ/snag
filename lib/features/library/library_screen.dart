@@ -55,6 +55,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final all = ref.watch(historyProvider);
     final items = _apply(all);
     final filtering = _search.text.isNotEmpty || _filter != _Filter.all;
+    final compact = MediaQuery.sizeOf(context).width < 600;
     final l = context.l10n;
 
     Widget body;
@@ -101,6 +102,26 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
+          // Hidden when everything left is still sharing: nothing to clear.
+          ValueListenableBuilder(
+            valueListenable: ref.watch(aria2Provider).seeding,
+            builder: (context, sharing, _) =>
+                !all.any((h) => !sharing.containsKey(h.filePath))
+                    ? const SizedBox.shrink()
+                    : compact
+                        ? IconButton(
+                            tooltip: l.libraryClearList,
+                            onPressed: () =>
+                                LibraryActions.clearList(context, ref),
+                            icon: const Icon(Icons.clear_all_rounded),
+                          )
+                        : TextButton.icon(
+                            onPressed: () =>
+                                LibraryActions.clearList(context, ref),
+                            icon: const Icon(Icons.clear_all_rounded),
+                            label: Text(l.libraryClearList),
+                          ),
+          ),
         ],
       ),
       body: ReadableWidth(
