@@ -172,6 +172,37 @@ void main() {
       expect(events.whereType<FileEvent>().single.path, '/d/Big Buck Bunny.mp4');
       expect(calls.where((c) => c == 'aria2.tellStatus'), hasLength(2));
     });
+
+    test('a torrent that keeps sharing is done for the queue', () async {
+      final calls = <String>[];
+      final aria2 = Aria2(_Engine(),
+          client: _rpc([
+            {
+              'status': 'active',
+              'seeder': 'true',
+              'dir': '/d',
+              'files': [
+                {'path': '/d/Big Buck Bunny.mp4'}
+              ],
+            },
+          ], calls));
+      Aria2.pollInterval = Duration.zero;
+
+      final events = await aria2
+          .download(
+            spec: const DownloadSpec(url: magnet, kind: DownloadKind.file),
+            settings: const AppSettings(seedHours: 6),
+            outputDir: '/d',
+            taskId: 't4',
+          )
+          .toList();
+
+      expect(events.whereType<FileEvent>().single.path, '/d/Big Buck Bunny.mp4');
+      // Still sharing: its result stays until it is stopped.
+      expect(calls, isNot(contains('aria2.removeDownloadResult')));
+      await aria2.stopSharing('/d/Big Buck Bunny.mp4');
+      expect(calls.last, 'aria2.forceRemove');
+    });
   });
 
   group('aria2', () {
