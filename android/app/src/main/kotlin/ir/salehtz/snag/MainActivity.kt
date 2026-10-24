@@ -2,6 +2,7 @@ package ir.salehtz.snag
 
 import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.FlutterEngineCache
+import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -20,10 +23,34 @@ class MainActivity : FlutterActivity() {
     private var platform: MethodChannel? = null
     private var pendingShare: String? = null
 
+    /** True when this activity picked up an engine that was already running. */
+    private var reusedEngine = false
+
     /** Results waiting for a permission dialog, keyed by request code. */
     private val pending = mutableMapOf<Int, MethodChannel.Result>()
 
+    // One engine for the whole process, kept outside the activity. Leaving
+    // with Back (say, to return to the app a link was shared from) finishes
+    // the activity, and with it the default engine: the queue would forget
+    // downloads that keep running in the background. With a shared engine
+    // the Dart side lives as long as the process, and reopening Snag comes
+    // back to exactly where it was.
+    override fun provideFlutterEngine(context: Context): FlutterEngine {
+        val cache = FlutterEngineCache.getInstance()
+        cache.get(ENGINE_ID)?.let {
+            reusedEngine = true
+            return it
+        }
+        return FlutterEngine(context.applicationContext).also {
+            it.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
+            cache.put(ENGINE_ID, it)
+        }
+    }
+
+    override fun shouldDestroyEngineWithHost() = false
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        // Plugins registered themselves when the engine was created.
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         YtDlpBridge.attach(this)
@@ -51,7 +78,13 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        pendingShare = sharedText(intent)
+        // A restored activity or one reopened from Recents carries the old
+        // share intent again; it was handled the first time.
+        val fromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+        if (savedInstanceState != null || fromHistory) return
+        val text = sharedText(intent) ?: return
+        // A running engine asked for the initial share long ago.
+        if (reusedEngine) platform?.invokeMethod("shared", text) else pendingShare = text
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -147,5 +180,6 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val NOTIFY_REQUEST = 8
         private const val STORAGE_REQUEST = 9
+        private const val ENGINE_ID = "snag"
     }
 }
