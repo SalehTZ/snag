@@ -748,5 +748,6 @@
   "settingsConnections": "Connections per download",
   "purposeAria2": "Downloads plain files over several connections at once.",
   "sheetDownloadFile": "Download file",
-  "summaryTorrent": "Torrent"
+  "summaryTorrent": "Torrent",
+  "supportNotNow": "Not now"
 }

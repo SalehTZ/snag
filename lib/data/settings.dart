@@ -40,6 +40,7 @@ class AppSettings {
     this.autoPaste = true,
     this.extraArgs = '',
     this.setupDone = false,
+    this.supportAskedAt = 0,
   });
 
   static const defaultFilenameTemplate = '%(title).180B [%(id)s].%(ext)s';
@@ -89,6 +90,9 @@ class AppSettings {
   final String extraArgs;
   final bool setupDone;
 
+  /// Library size when the donation card on Home was last closed.
+  final int supportAskedAt;
+
   AppSettings copyWith({
     ThemeMode? themeMode,
     String? Function()? localeCode,
@@ -120,6 +124,7 @@ class AppSettings {
     bool? autoPaste,
     String? extraArgs,
     bool? setupDone,
+    int? supportAskedAt,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -154,6 +159,7 @@ class AppSettings {
       autoPaste: autoPaste ?? this.autoPaste,
       extraArgs: extraArgs ?? this.extraArgs,
       setupDone: setupDone ?? this.setupDone,
+      supportAskedAt: supportAskedAt ?? this.supportAskedAt,
     );
   }
 
@@ -188,6 +194,7 @@ class AppSettings {
         'autoPaste': autoPaste,
         'extraArgs': extraArgs,
         'setupDone': setupDone,
+        'supportAskedAt': supportAskedAt,
       };
 
   factory AppSettings.fromJson(Map<String, Object?> j) {
@@ -229,6 +236,7 @@ class AppSettings {
       autoPaste: j['autoPaste'] as bool? ?? d.autoPaste,
       extraArgs: j['extraArgs'] as String? ?? d.extraArgs,
       setupDone: j['setupDone'] as bool? ?? d.setupDone,
+      supportAskedAt: j['supportAskedAt'] as int? ?? d.supportAskedAt,
     );
   }
 }
