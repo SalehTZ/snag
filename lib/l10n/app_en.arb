@@ -747,5 +747,6 @@
   "queueResume": "Resume",
   "settingsConnections": "Connections per download",
   "purposeAria2": "Downloads plain files over several connections at once.",
-  "sheetDownloadFile": "Download file"
+  "sheetDownloadFile": "Download file",
+  "supportNotNow": "Not now"
 }
