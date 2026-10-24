@@ -11,7 +11,8 @@ import 'package:path_provider/path_provider.dart';
 enum Component {
   ytDlp('yt-dlp'),
   ffmpeg('ffmpeg'),
-  deno('Deno');
+  deno('Deno'),
+  aria2c('aria2');
 
   const Component(this.label);
 
@@ -60,6 +61,7 @@ class BinaryManager {
       Component.ytDlp => p.join(dir, 'yt-dlp$_exe'),
       Component.ffmpeg => p.join(dir, 'ffmpeg$_exe'),
       Component.deno => p.join(dir, 'deno$_exe'),
+      Component.aria2c => p.join(dir, 'aria2c$_exe'),
     };
   }
 
@@ -79,6 +81,7 @@ class BinaryManager {
       Component.ytDlp => 'yt-dlp',
       Component.ffmpeg => 'ffmpeg',
       Component.deno => 'deno',
+      Component.aria2c => 'aria2c',
     });
     if (system != null) {
       return ComponentStatus(c, ComponentSource.system, path: system);
@@ -88,8 +91,8 @@ class BinaryManager {
 
   Future<ComponentStatus> withVersion(ComponentStatus s) async {
     if (s.path == null) return s;
-    final args = s.component == Component.ytDlp ? ['--version'] : ['-version'];
-    final realArgs = s.component == Component.deno ? ['--version'] : args;
+    final realArgs =
+        s.component == Component.ffmpeg ? ['-version'] : ['--version'];
     try {
       final r = await Process.run(s.path!, realArgs)
           .timeout(const Duration(seconds: 15));
@@ -100,6 +103,8 @@ class BinaryManager {
           RegExp(r'ffmpeg version (\S+)').firstMatch(first)?.group(1) ?? first,
         Component.deno =>
           RegExp(r'deno (\S+)').firstMatch(first)?.group(1) ?? first,
+        Component.aria2c =>
+          RegExp(r'aria2 version (\S+)').firstMatch(first)?.group(1) ?? first,
       };
       return ComponentStatus(s.component, s.source,
           path: s.path, version: version);
@@ -122,6 +127,10 @@ class BinaryManager {
         await _extractPicking(archive, {'deno$_exe'}, onProgress);
       case Component.ffmpeg:
         await _installFfmpeg(onProgress);
+      case Component.aria2c:
+        final archive = p.join((await binDir()).path, 'aria2.zip');
+        await _download(Uri.parse(_aria2Url()), archive, onProgress);
+        await _extractPicking(archive, {'aria2c$_exe'}, onProgress);
     }
   }
 
@@ -201,6 +210,22 @@ class BinaryManager {
       _ => 'x86_64-unknown-linux-gnu',
     };
     return '$base/deno-$target.zip';
+  }
+
+  /// aria2 ships official builds for Windows only; Linux gets a static build.
+  String _aria2Url() {
+    if (Platform.isWindows) {
+      return 'https://github.com/aria2/aria2/releases/download/release-1.37.0/'
+          'aria2-1.37.0-win-64bit-build1.zip';
+    }
+    if (Platform.isLinux) {
+      final arch = Abi.current() == Abi.linuxArm64 ? 'aarch64' : 'x86_64';
+      return 'https://github.com/abcfy2/aria2-static-build/releases/latest/'
+          'download/aria2-$arch-linux-musl_static.zip';
+    }
+    throw UnsupportedError(
+        'There is no ready-made aria2 for macOS. Install it with Homebrew '
+        '(brew install aria2) and Snag will find it.');
   }
 
   Future<void> _download(Uri uri, String target, InstallProgress? onProgress,

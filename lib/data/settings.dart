@@ -32,6 +32,7 @@ class AppSettings {
     this.rateLimit,
     this.useAria2c = false,
     this.concurrency = 2,
+    this.connections = 8,
     this.restrictFilenames = false,
     this.ytDlpPath,
     this.ffmpegPath,
@@ -39,6 +40,7 @@ class AppSettings {
     this.autoPaste = true,
     this.extraArgs = '',
     this.setupDone = false,
+    this.supportAskedAt = 0,
   });
 
   static const defaultFilenameTemplate = '%(title).180B [%(id)s].%(ext)s';
@@ -72,6 +74,9 @@ class AppSettings {
   final String? rateLimit;
   final bool useAria2c;
   final int concurrency;
+
+  /// aria2 connections per file download (and per video, with aria2 on).
+  final int connections;
   final bool restrictFilenames;
 
   /// Manual binary overrides (desktop). Null = managed by Snag.
@@ -84,6 +89,9 @@ class AppSettings {
   /// Free-form yt-dlp arguments appended to every download.
   final String extraArgs;
   final bool setupDone;
+
+  /// Library size when the donation card on Home was last closed.
+  final int supportAskedAt;
 
   AppSettings copyWith({
     ThemeMode? themeMode,
@@ -108,6 +116,7 @@ class AppSettings {
     String? Function()? rateLimit,
     bool? useAria2c,
     int? concurrency,
+    int? connections,
     bool? restrictFilenames,
     String? Function()? ytDlpPath,
     String? Function()? ffmpegPath,
@@ -115,6 +124,7 @@ class AppSettings {
     bool? autoPaste,
     String? extraArgs,
     bool? setupDone,
+    int? supportAskedAt,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -141,6 +151,7 @@ class AppSettings {
       rateLimit: rateLimit != null ? rateLimit() : this.rateLimit,
       useAria2c: useAria2c ?? this.useAria2c,
       concurrency: concurrency ?? this.concurrency,
+      connections: connections ?? this.connections,
       restrictFilenames: restrictFilenames ?? this.restrictFilenames,
       ytDlpPath: ytDlpPath != null ? ytDlpPath() : this.ytDlpPath,
       ffmpegPath: ffmpegPath != null ? ffmpegPath() : this.ffmpegPath,
@@ -148,6 +159,7 @@ class AppSettings {
       autoPaste: autoPaste ?? this.autoPaste,
       extraArgs: extraArgs ?? this.extraArgs,
       setupDone: setupDone ?? this.setupDone,
+      supportAskedAt: supportAskedAt ?? this.supportAskedAt,
     );
   }
 
@@ -174,6 +186,7 @@ class AppSettings {
         'rateLimit': rateLimit,
         'useAria2c': useAria2c,
         'concurrency': concurrency,
+        'connections': connections,
         'restrictFilenames': restrictFilenames,
         'ytDlpPath': ytDlpPath,
         'ffmpegPath': ffmpegPath,
@@ -181,6 +194,7 @@ class AppSettings {
         'autoPaste': autoPaste,
         'extraArgs': extraArgs,
         'setupDone': setupDone,
+        'supportAskedAt': supportAskedAt,
       };
 
   factory AppSettings.fromJson(Map<String, Object?> j) {
@@ -213,6 +227,7 @@ class AppSettings {
       rateLimit: j['rateLimit'] as String?,
       useAria2c: j['useAria2c'] as bool? ?? d.useAria2c,
       concurrency: (j['concurrency'] as int? ?? d.concurrency).clamp(1, 8),
+      connections: (j['connections'] as int? ?? d.connections).clamp(1, 16),
       restrictFilenames: j['restrictFilenames'] as bool? ?? d.restrictFilenames,
       ytDlpPath: j['ytDlpPath'] as String?,
       ffmpegPath: j['ffmpegPath'] as String?,
@@ -221,6 +236,7 @@ class AppSettings {
       autoPaste: j['autoPaste'] as bool? ?? d.autoPaste,
       extraArgs: j['extraArgs'] as String? ?? d.extraArgs,
       setupDone: j['setupDone'] as bool? ?? d.setupDone,
+      supportAskedAt: j['supportAskedAt'] as int? ?? d.supportAskedAt,
     );
   }
 }

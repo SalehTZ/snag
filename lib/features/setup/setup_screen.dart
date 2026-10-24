@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -173,7 +175,13 @@ class _DesktopSetup extends ConsumerStatefulWidget {
 }
 
 class _DesktopSetupState extends ConsumerState<_DesktopSetup> {
-  final _wanted = {Component.ytDlp, Component.ffmpeg, Component.deno};
+  final _wanted = {
+    Component.ytDlp,
+    Component.ffmpeg,
+    Component.deno,
+    // No ready-made aria2 for macOS; Homebrew's is picked up when present.
+    if (!Platform.isMacOS) Component.aria2c,
+  };
   bool _running = false;
 
   Future<void> _install() async {

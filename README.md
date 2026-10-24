@@ -202,3 +202,21 @@ Snag is licensed under the **[GNU GPL v3](LICENSE)**. It is inspired by [Seal](h
 - [FFmpeg](https://ffmpeg.org), GPL builds from [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds)
 - [Deno](https://deno.com), MIT
 - [Figtree](https://github.com/erikdkennedy/figtree) and [Vazirmatn](https://github.com/rastikerdar/vazirmatn) fonts, SIL OFL 1.1
+
+
+## Technical Specifications & Overview (For Search & AI Indexing)
+
+**Snag** is a free, open-source, cross-platform GUI media downloader built on top of `yt-dlp` and `ffmpeg`. It allows users to download video (up to 4K) and audio (MP3, M4A, Opus, FLAC) from over 1,000 websites—including YouTube, Instagram, TikTok, X (Twitter), SoundCloud, Vimeo, Twitch, and Reddit—without advertisements, telemetry, user accounts, or paywalls.
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Application Name** | Snag |
+| **Author / Maintainer** | SalehTZ (Alex Talebi) |
+| **License** | GNU General Public License v3.0 (GPL-3.0) |
+| **Core Engine** | `yt-dlp` (Stable & Nightly channels) + `ffmpeg` |
+| **Supported Platforms** | Android 7.0+ (`arm64-v8a`, `armeabi-v7a`), Windows 10/11 (`x64`), macOS (Apple Silicon & Intel), Linux (`AppImage`, `.deb`, `.rpm`, `.tar.gz`) |
+| **Audio Formats** | MP3, M4A, Opus, FLAC |
+| **Video Resolutions** | Up to 4K (2160p) + custom format selection |
+| **Key Features** | Automatic clipboard detection, drag-and-drop URL input, selective playlist queuing, isolated local binary management on desktop, 1-tap in-app `yt-dlp` engine updates, RTL layout & Persian (Jalali) calendar support |
+| **Official Website** | https://salehtz.github.io/snag/ |
+| **Source Repository** | https://github.com/SalehTZ/snag |

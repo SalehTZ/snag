@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../engine/models.dart';
 import '../l10n/l10n.dart';
 import '../core/theme/motion.dart';
 import '../core/theme/theme.dart';
 import 'shapes.dart';
+
+/// Placeholder icon for a download that has no thumbnail.
+IconData kindIcon(DownloadSpec spec) => spec.kind == DownloadKind.file
+    ? Icons.insert_drive_file_outlined
+    : spec.mode == DownloadMode.audio
+        ? Icons.music_note_rounded
+        : Icons.movie_outlined;
 
 /// Rounded thumbnail with graceful loading/error states and an optional
 /// duration badge.
@@ -288,6 +296,10 @@ void showSnack(BuildContext context, String message,
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(SnackBar(
     content: Text(message),
+    // Flutter keeps snackbars that have an action on screen until they are
+    // dismissed; ours are just confirmations, so let them time out.
+    persist: false,
+    duration: const Duration(seconds: 4),
     action: actionLabel == null
         ? null
         : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),

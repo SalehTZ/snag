@@ -8,9 +8,20 @@ import '../../l10n/l10n.dart';
 import '../../widgets/common.dart';
 import '../../widgets/shapes.dart';
 
+/// Downloads after which Home shows the support card, once each. Three
+/// asks in a lifetime, and only to people Snag has clearly helped.
+const supportMilestones = [5, 50, 250];
+
+bool shouldAskForSupport({required int downloads, required int askedAt}) =>
+    supportMilestones.any((m) => downloads >= m && askedAt < m);
+
 /// The donation ask: honest, friendly, never a nag.
 class SupportCard extends StatelessWidget {
-  const SupportCard({super.key});
+  const SupportCard({super.key, this.onClose});
+
+  /// Set when the card is an ask on Home: shows a close button, and is also
+  /// called once someone follows a donation link.
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +49,13 @@ class SupportCard extends StatelessWidget {
                 style: theme.textTheme.titleLarge
                     ?.copyWith(color: scheme.onTertiaryContainer)),
           ),
+          if (onClose != null)
+            IconButton(
+              tooltip: l.supportNotNow,
+              onPressed: onClose,
+              color: scheme.onTertiaryContainer,
+              icon: const Icon(Icons.close_rounded),
+            ),
         ]),
         const SizedBox(height: 12),
         Text(
@@ -52,14 +70,20 @@ class SupportCard extends StatelessWidget {
               backgroundColor: scheme.tertiary,
               foregroundColor: scheme.onTertiary,
             ),
-            onPressed: () => PlatformActions.openLink(AppInfo.sponsorUrl),
+            onPressed: () {
+              PlatformActions.openLink(AppInfo.sponsorUrl);
+              onClose?.call();
+            },
             icon: const Icon(Icons.favorite_rounded),
             label: Text(l.supportSponsors),
           ),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
                 foregroundColor: scheme.onTertiaryContainer),
-            onPressed: () => showCryptoSheet(context),
+            onPressed: () {
+              showCryptoSheet(context);
+              onClose?.call();
+            },
             icon: const Icon(Icons.currency_bitcoin_rounded),
             label: Text(l.supportCrypto),
           ),

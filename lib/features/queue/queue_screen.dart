@@ -19,6 +19,7 @@ class QueueScreen extends ConsumerWidget {
     final active = tasks
         .where((t) =>
             t.status == TaskStatus.running ||
+            t.status == TaskStatus.paused ||
             t.status == TaskStatus.processing)
         .toList();
     final waiting = tasks.where((t) => t.status == TaskStatus.queued).toList();
@@ -120,9 +121,7 @@ class TaskRow extends ConsumerWidget {
             width: compact ? 104 : 136,
             radius: 14,
             duration: task.meta.duration,
-            icon: task.spec.mode == DownloadMode.audio
-                ? Icons.music_note_rounded
-                : Icons.movie_outlined,
+            icon: kindIcon(task.spec),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -163,8 +162,22 @@ class TaskRow extends ConsumerWidget {
     switch (task.status) {
       case TaskStatus.queued:
       case TaskStatus.running:
+      case TaskStatus.paused:
       case TaskStatus.processing:
         return [
+          if (task.status == TaskStatus.running &&
+              task.spec.kind == DownloadKind.file)
+            IconButton(
+              tooltip: l.queuePause,
+              onPressed: () => manager.pause(task.id),
+              icon: const Icon(Icons.pause_rounded),
+            ),
+          if (task.status == TaskStatus.paused)
+            IconButton.filledTonal(
+              tooltip: l.queueResume,
+              onPressed: () => manager.resume(task.id),
+              icon: const Icon(Icons.play_arrow_rounded),
+            ),
           IconButton(
             tooltip: l.commonCancel,
             onPressed: () => manager.cancel(task.id),
@@ -218,16 +231,19 @@ class TaskRow extends ConsumerWidget {
       case TaskStatus.processing:
         return l.stage(t.stage);
       case TaskStatus.running:
+      case TaskStatus.paused:
         final p = t.progress;
         if (p == null) return l.statusStarting(l.summary(t.spec));
+        final paused = t.status == TaskStatus.paused;
         final parts = <String>[
+          if (paused) l.statusPaused,
           if (p.fraction != null) fmt.percent(p.fraction!),
           if (p.total != null)
             l.progressOf(fmt.bytes(p.downloaded), fmt.bytes(p.total))
           else if (p.downloaded != null)
             fmt.bytes(p.downloaded),
-          if (p.speed != null) fmt.speed(p.speed),
-          if (p.eta != null) l.timeLeft(fmt.eta(p.eta)),
+          if (p.speed != null && !paused) fmt.speed(p.speed),
+          if (p.eta != null && !paused) l.timeLeft(fmt.eta(p.eta)),
         ];
         return parts.join(' · ');
       case TaskStatus.completed:
@@ -261,8 +277,10 @@ class _Progress extends StatelessWidget {
       // ignore: deprecated_member_use
       return const LinearProgressIndicator(value: 0, year2023: false);
     }
-    final value =
-        task.status == TaskStatus.running ? task.progress?.fraction : null;
+    final value = task.status == TaskStatus.running ||
+            task.status == TaskStatus.paused
+        ? task.progress?.fraction
+        : null;
     if (value == null) {
       // ignore: deprecated_member_use
       return const LinearProgressIndicator(year2023: false);

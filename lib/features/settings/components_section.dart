@@ -33,7 +33,7 @@ class ComponentsSection extends ConsumerWidget {
           state: states[c] ?? const ComponentState(),
           onInstall: () => ctrl.install(c),
           onUpdate: c == Component.ytDlp ? ctrl.updateYtDlp : null,
-          onPickCustom: c == Component.deno
+          onPickCustom: c == Component.deno || c == Component.aria2c
               ? null
               : () async {
                   final file = await FilePicker.pickFile(

@@ -48,7 +48,7 @@ class ComponentsController extends Notifier<Map<Component, ComponentState>> {
       final override = switch (c) {
         Component.ytDlp => settings.ytDlpPath,
         Component.ffmpeg => settings.ffmpegPath,
-        Component.deno => null,
+        Component.deno || Component.aria2c => null,
       };
       final status =
           await _bins.withVersion(await _bins.resolve(c, override: override));

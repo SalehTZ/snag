@@ -22,7 +22,9 @@ import 'package:snag/engine/args_builder.dart';
 import 'package:snag/engine/binary_manager.dart';
 import 'package:snag/engine/models.dart';
 import 'package:snag/engine/ytdlp_engine.dart';
+import 'package:snag/engine/file_probe.dart';
 import 'package:snag/features/download_sheet/download_sheet.dart';
+import 'package:snag/features/download_sheet/file_sheet.dart';
 import 'package:snag/features/queue/download_manager.dart';
 import 'package:snag/features/settings/support_card.dart';
 import 'package:snag/features/setup/components_controller.dart';
@@ -45,6 +47,8 @@ class FakeEngine extends YtDlpEngine {
   @override
   Future<void> cancel(String taskId) async {}
   @override
+  Future<void> startAria2(List<String> args, AppSettings settings) async {}
+  @override
   Future<String?> version(AppSettings settings) async => '2026.09.30';
   @override
   Future<UpdateResult> update(AppSettings settings) async =>
@@ -63,6 +67,12 @@ class FakeComponents extends ComponentsController {
   final Map<Component, ComponentState> states;
   @override
   Map<Component, ComponentState> build() => states;
+}
+
+/// Enough downloads for Home's first donation ask.
+class LongHistory extends HistoryNotifier {
+  @override
+  List<HistoryItem> build() => [...history, ...history];
 }
 
 class TabAt extends TabNotifier {
@@ -134,6 +144,18 @@ final tasks = [
     createdAt: now,
     status: TaskStatus.processing,
     stage: 'Merging video and audio',
+  ),
+  DownloadTask(
+    id: 't6',
+    spec: const DownloadSpec(
+        url: 'https://cdimage.debian.org/debian-13.1.0-amd64-netinst.iso',
+        kind: DownloadKind.file),
+    meta: const MediaMeta(
+        title: 'debian-13.1.0-amd64-netinst.iso', uploader: 'cdimage.debian.org'),
+    createdAt: now,
+    status: TaskStatus.paused,
+    progress: const ProgressUpdate(
+        status: 'downloading', downloaded: 412 * 1024 * 1024, total: 754 * 1024 * 1024),
   ),
   DownloadTask(
     id: 't3',
@@ -298,6 +320,12 @@ void main() {
       await shoot(t, 'home_phone_$tag', const AppShell(), size: phone, dpr: 2.5, brightness: b);
     });
 
+    testWidgets('home support $tag', (t) async {
+      await shoot(t, 'home_support_phone_$tag', const AppShell(),
+          size: phone, dpr: 2.5, brightness: b,
+          overrides: [historyProvider.overrideWith(LongHistory.new)]);
+    });
+
     testWidgets('queue $tag', (t) async {
       final o = [
         tabProvider.overrideWith(() => TabAt(AppTab.queue)),
@@ -324,6 +352,28 @@ void main() {
         t,
         'sheet_phone_$tag',
         Scaffold(body: DownloadSheet(info: sampleInfo)),
+        size: phone,
+        dpr: 2.5,
+        brightness: b,
+      );
+    });
+
+    testWidgets('file sheet $tag', (t) async {
+      await shoot(
+        t,
+        'file_sheet_phone_$tag',
+        const Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: FileSheet(
+              file: RemoteFile(
+                url: 'https://github.com/SalehTZ/snag/releases/download/v0.1.0/snag-android.apk',
+                name: 'snag-android.apk',
+                size: 61 * 1024 * 1024,
+              ),
+            ),
+          ),
+        ),
         size: phone,
         dpr: 2.5,
         brightness: b,

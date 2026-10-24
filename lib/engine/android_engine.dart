@@ -116,6 +116,28 @@ class AndroidEngine extends YtDlpEngine {
       });
 
   @override
+  Future<void> startAria2(List<String> args, AppSettings settings) async {
+    try {
+      await _method.invokeMethod<void>('aria2Start', {'args': args});
+    } on PlatformException catch (e) {
+      throw EngineException(EngineErrorKind.engineStart,
+          raw: 'aria2', details: _detailsOf(e));
+    }
+  }
+
+  @override
+  Future<void> trackFile(String taskId, {String? title, double? fraction}) =>
+      _method.invokeMethod<void>('trackFile', {
+        'taskId': taskId,
+        'title': title,
+        'percent': (fraction ?? 0) * 100,
+      });
+
+  @override
+  Future<void> untrackFile(String taskId) =>
+      _method.invokeMethod<void>('untrackFile', {'taskId': taskId});
+
+  @override
   Future<void> cancel(String taskId) =>
       _method.invokeMethod<void>('cancel', {'taskId': taskId});
 

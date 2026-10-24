@@ -5,6 +5,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.yausername.aria2c.Aria2c
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -40,6 +41,7 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
     @Volatile var downloadingLabel = "Downloading"
     @Volatile var localeTag = "en"
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
+    @Volatile private var aria2: Process? = null
 
     fun attach(context: Context) {
         appContext = context.applicationContext
@@ -83,6 +85,29 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
                 result.success(null)
             }
             "version" -> background(result) { ensureInit(); version() }
+            "aria2Start" -> background(result) {
+                startAria2(call.argument<List<String>>("args")!!)
+                null
+            }
+            // File downloads run in aria2c; Dart reports them here so the
+            // foreground notification (and the process) covers them too.
+            "trackFile" -> {
+                val taskId = call.argument<String>("taskId")!!
+                val progress = active.getOrPut(taskId) { TaskProgress() }
+                call.argument<String>("title")?.let { progress.title = it }
+                call.argument<Double>("percent")?.let { progress.percent = it.toFloat() }
+                val now = System.currentTimeMillis()
+                if (now - lastNotify > 1000) {
+                    lastNotify = now
+                    DownloadService.refresh(appContext)
+                }
+                result.success(null)
+            }
+            "untrackFile" -> {
+                active.remove(call.argument<String>("taskId")!!)
+                DownloadService.refresh(appContext)
+                result.success(null)
+            }
             "setNotificationLabels" -> {
                 call.argument<String>("downloading")?.let { downloadingLabel = it }
                 call.argument<String>("locale")?.let { localeTag = it }
@@ -114,6 +139,31 @@ object YtDlpBridge : MethodChannel.MethodCallHandler, EventChannel.StreamHandler
         FFmpeg.getInstance().init(appContext)
         Log.i(TAG, "init: done in ${System.currentTimeMillis() - start} ms")
         initialized = true
+    }
+
+    /**
+     * aria2c ships as a native lib (youtubedl-android's aria2c module); its
+     * shared libraries and the CA bundle come from the unpacked packages.
+     */
+    private fun startAria2(args: List<String>) {
+        ensureInit()
+        Aria2c.getInstance().init(appContext)
+        aria2?.destroy()
+        val packages = File(appContext.noBackupFilesDir, "youtubedl-android/packages")
+        val exe = File(appContext.applicationInfo.nativeLibraryDir, "libaria2c.so")
+        val command = listOf(exe.absolutePath) + args +
+            "--ca-certificate=${File(packages, "python/usr/etc/tls/cert.pem").absolutePath}"
+        val process = ProcessBuilder(command)
+            .redirectErrorStream(true)
+            .apply {
+                environment()["LD_LIBRARY_PATH"] = File(packages, "aria2c/usr/lib").absolutePath
+            }
+            .start()
+        aria2 = process
+        // Unread output fills the pipe and stalls aria2c.
+        pool.execute {
+            process.inputStream.bufferedReader().forEachLine { Log.i(TAG, "aria2: $it") }
+        }
     }
 
     /**
