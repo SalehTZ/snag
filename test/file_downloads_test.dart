@@ -165,6 +165,95 @@ void main() {
     });
   });
 
+  group('picking files in a torrent', () {
+    test('paths inside the torrent folder, with aria2 indexes', () {
+      final files = torrentFilesFrom([
+        {'index': '1', 'path': '/tmp/t/Album/01.flac', 'length': '30'},
+        {'index': '2', 'path': '/tmp/t/Album/art/cover.jpg', 'length': '5'},
+      ], '/tmp/t');
+      expect(files.map((f) => f.path), ['01.flac', 'art/cover.jpg']);
+      expect(files.map((f) => f.index), [1, 2]);
+      expect(files.first.size, 30);
+      expect(torrentFilesFrom([
+        {'index': '1', 'path': '/tmp/t/one.iso', 'length': '9'}
+      ], '/tmp/t').single.path, 'one.iso');
+    });
+
+    test('reads the list from the paused download and lets go of it',
+        () async {
+      final calls = <(String, List<Object?>)>[];
+      final aria2 = Aria2(_Engine(), client: MockClient((req) async {
+        final body = jsonDecode(req.body) as Map<String, dynamic>;
+        final method = body['method'] as String;
+        final params = (body['params'] as List).skip(1).toList();
+        calls.add((method, params));
+        final result = switch (method) {
+          'aria2.addUri' => 'gid1',
+          // The probe's cleanup asks only for the status.
+          'aria2.tellStatus' when (params[1] as List).length == 1 =>
+            {'status': 'removed'},
+          'aria2.tellStatus' => {'status': 'complete', 'followedBy': ['gid2']},
+          'aria2.getFiles' => [
+              {'index': '1', 'path': 'x', 'length': '1'},
+              {'index': '2', 'path': 'y', 'length': '2'},
+            ],
+          _ => 'OK',
+        };
+        return http.Response(jsonEncode({'id': 'snag', 'result': result}), 200);
+      }));
+      Aria2.pollInterval = Duration.zero;
+
+      final files = await aria2.torrentFiles(
+          'https://x.org/a.torrent', const AppSettings());
+
+      expect(files.map((f) => f.index), [1, 2]);
+      final add = calls.firstWhere((c) => c.$1 == 'aria2.addUri').$2;
+      expect(add[1], containsPair('pause-metadata', 'true'));
+      expect(calls.where((c) => c.$1 == 'aria2.getFiles').single.$2, ['gid2']);
+      expect(
+          calls.where((c) => c.$1 == 'aria2.forceRemove').single.$2, ['gid2']);
+    });
+
+    test('the download fetches only the picked files', () async {
+      Map<String, dynamic>? options;
+      final aria2 = Aria2(_Engine(), client: MockClient((req) async {
+        final body = jsonDecode(req.body) as Map<String, dynamic>;
+        final result = switch (body['method']) {
+          'aria2.addUri' => () {
+              options = (body['params'] as List)[2] as Map<String, dynamic>;
+              return 'gid1';
+            }(),
+          'aria2.tellStatus' => {
+              'status': 'complete',
+              'dir': '/d',
+              'files': [
+                {'path': '/d/a.mkv'}
+              ],
+            },
+          _ => 'OK',
+        };
+        return http.Response(jsonEncode({'id': 'snag', 'result': result}), 200);
+      }));
+
+      await aria2
+          .download(
+            spec: const DownloadSpec(
+                url: 'https://x.org/a.torrent',
+                kind: DownloadKind.file,
+                files: [1, 3]),
+            settings: const AppSettings(),
+            outputDir: '/d',
+            taskId: 't4',
+          )
+          .toList();
+
+      expect(options, containsPair('select-file', '1,3'));
+      const spec = DownloadSpec(url: 'u', files: [1, 3]);
+      expect(DownloadSpec.fromJson(spec.toJson()).files, [1, 3]);
+      expect(DownloadSpec.fromJson({'url': 'u'}).files, isNull);
+    });
+  });
+
   group('aria2', () {
     test('status as progress', () {
       final p = progressFrom({

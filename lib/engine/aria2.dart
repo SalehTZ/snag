@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../data/settings.dart';
+import 'file_probe.dart';
 import 'models.dart';
 import 'output_parser.dart';
 import 'ytdlp_engine.dart';
@@ -26,6 +27,7 @@ class Aria2 {
   String _secret = '';
   final _gids = <String, String>{};
   final _cancelled = <String>{};
+  final _probes = <String, String>{};
 
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 1);
@@ -37,19 +39,25 @@ class Aria2 {
     required String taskId,
   }) async* {
     _cancelled.remove(taskId);
-    final proxy = settings.proxy?.trim() ?? '';
-    var gid = await _call(settings, 'aria2.addUri', [
-      [spec.url],
-      {
-        'dir': outputDir,
-        'split': '${settings.connections}',
-        'max-connection-per-server': '${settings.connections}',
-        'min-split-size': '1M',
-        if (settings.rateLimit?.trim().isNotEmpty ?? false)
-          'max-download-limit': settings.rateLimit!.trim(),
-        if (proxy.startsWith('http')) 'all-proxy': proxy,
-      },
-    ]) as String;
+    final options = {
+      'dir': outputDir,
+      'split': '${settings.connections}',
+      'max-connection-per-server': '${settings.connections}',
+      'min-split-size': '1M',
+      if (settings.rateLimit?.trim().isNotEmpty ?? false)
+        'max-download-limit': settings.rateLimit!.trim(),
+      ..._proxy(settings),
+      if (spec.files case final files?) 'select-file': files.join(','),
+    };
+    // A magnet whose file list was already read skips fetching it again.
+    final saved = await _savedMetadata(spec.url);
+    var gid = await (saved != null
+        ? _call(settings, 'aria2.addTorrent',
+            [base64Encode(saved), const <String>[], options])
+        : _call(settings, 'aria2.addUri', [
+            [spec.url],
+            options
+          ])) as String;
     _gids[taskId] = gid;
     if (_cancelled.contains(taskId)) await cancel(taskId);
 
@@ -104,6 +112,103 @@ class Aria2 {
       unawaited(_engine.untrackFile(taskId));
       unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
     }
+  }
+
+  /// The files inside a torrent or magnet, for picking some of them.
+  /// aria2 fetches the metadata and pauses before downloading anything;
+  /// [stopFiles] abandons the wait.
+  Future<List<TorrentFile>> torrentFiles(
+      String url, AppSettings settings) async {
+    final dir = await _metadataDir();
+    var gid = await _call(settings, 'aria2.addUri', [
+      [url],
+      {
+        'dir': dir,
+        'pause-metadata': 'true',
+        // Kept for the real download, see _savedMetadata.
+        'bt-save-metadata': 'true',
+        'follow-torrent': 'mem',
+        ..._proxy(settings),
+      },
+    ]) as String;
+    _probes[url] = gid;
+    try {
+      while (_probes[url] == gid) {
+        final s = await _call(settings, 'aria2.tellStatus', [
+          gid,
+          ['status', 'followedBy', 'errorCode', 'errorMessage'],
+        ]) as Map<String, dynamic>;
+        switch (s['status']) {
+          case 'error':
+            throw failure(s['errorCode'], s['errorMessage']);
+          case 'removed':
+            throw const CancelledException();
+          case 'complete':
+            final next = (s['followedBy'] as List?)?.firstOrNull;
+            if (next == null) {
+              throw EngineException(EngineErrorKind.unknown,
+                  raw: 'not a torrent');
+            }
+            unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+            gid = _probes[url] = '$next';
+            final files = await _call(settings, 'aria2.getFiles', [gid]);
+            return torrentFilesFrom(files as List, dir);
+        }
+        await Future<void>.delayed(pollInterval);
+      }
+      throw const CancelledException();
+    } finally {
+      if (_probes[url] == gid) _probes.remove(url);
+      await _dropProbe(settings, gid);
+    }
+  }
+
+  /// Stops [torrentFiles] for [url], if it is still waiting.
+  Future<void> stopFiles(String url, AppSettings settings) async {
+    final gid = _probes.remove(url);
+    if (gid != null) await _dropProbe(settings, gid);
+  }
+
+  /// Removes a probe and waits until aria2 lets go of its info hash, or the
+  /// real download of the same torrent would be refused as a duplicate.
+  Future<void> _dropProbe(AppSettings settings, String gid) async {
+    await _tryCall(settings, 'aria2.forceRemove', [gid]);
+    for (var i = 0; i < 20; i++) {
+      try {
+        final s = await _call(settings, 'aria2.tellStatus', [gid, ['status']])
+            as Map<String, dynamic>;
+        if (s['status'] != 'active' && s['status'] != 'paused' &&
+            s['status'] != 'waiting') {
+          break;
+        }
+      } catch (_) {
+        break;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await _tryCall(settings, 'aria2.removeDownloadResult', [gid]);
+  }
+
+  static Future<String> _metadataDir() => getTemporaryDirectory().then(
+      (d) => p.join(d.path, 'torrents'),
+      onError: (_) => p.join(Directory.systemTemp.path, 'snag-torrents'));
+
+  /// The .torrent aria2 saved while [torrentFiles] read a magnet.
+  static Future<List<int>?> _savedMetadata(String url) async {
+    if (!isMagnet(url)) return null;
+    final hash = Uri.tryParse(url)?.queryParameters['xt']?.split(':').last;
+    if (hash == null || hash.length != 40) return null;
+    try {
+      return await File(p.join(await _metadataDir(), '${hash.toLowerCase()}.torrent'))
+          .readAsBytes();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Map<String, String> _proxy(AppSettings settings) {
+    final proxy = settings.proxy?.trim() ?? '';
+    return proxy.startsWith('http') ? {'all-proxy': proxy} : const {};
   }
 
   Future<void> pause(String taskId) => _onGid(taskId, 'aria2.forcePause');
@@ -244,6 +349,27 @@ List<String> filePaths(Map<String, dynamic> s) => [
             when path.isNotEmpty && !path.startsWith('[METADATA]'))
           path,
     ];
+
+/// One file inside a torrent; [index] is what aria2's select-file takes.
+typedef TorrentFile = ({int index, String path, int size});
+
+/// An `aria2.getFiles` answer for a torrent saved under [dir], with paths
+/// inside the torrent's own folder.
+List<TorrentFile> torrentFilesFrom(List<Object?> files, String dir) {
+  final paths = [
+    for (final f in files) p.relative('${(f as Map)['path']}', from: dir)
+  ];
+  // A multi-file torrent keeps everything in one folder named after it.
+  final strip = paths.length > 1;
+  return [
+    for (final (i, f) in files.indexed)
+      (
+        index: int.parse('${(f as Map)['index']}'),
+        path: strip ? p.joinAll(p.split(paths[i]).skip(1)) : paths[i],
+        size: int.tryParse('${f['length']}') ?? 0,
+      ),
+  ];
+}
 
 /// One `aria2.tellStatus` answer as Snag's progress.
 ProgressUpdate progressFrom(Map<String, dynamic> s) {
