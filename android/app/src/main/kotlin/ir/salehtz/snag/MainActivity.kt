@@ -5,9 +5,11 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -93,10 +95,38 @@ class MainActivity : FlutterActivity() {
         platform?.invokeMethod("shared", text)
     }
 
-    private fun sharedText(intent: Intent?): String? = when (intent?.action) {
-        Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
-        Intent.ACTION_VIEW -> intent.dataString
-        else -> null
+    private fun sharedText(intent: Intent?): String? {
+        if (intent?.type == TORRENT) {
+            @Suppress("DEPRECATION")
+            val uri = when (intent.action) {
+                Intent.ACTION_SEND -> intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                Intent.ACTION_VIEW -> intent.data
+                else -> null
+            }
+            return uri?.let(::copyTorrent)
+        }
+        return when (intent?.action) {
+            Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
+            Intent.ACTION_VIEW -> intent.dataString
+            else -> null
+        }
+    }
+
+    /**
+     * Dart can't read a content:// URI, and the grant to read it ends with
+     * this intent: copy the .torrent out and hand Dart a file:// link.
+     */
+    private fun copyTorrent(uri: Uri): String? = try {
+        val name = contentResolver
+            .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+            ?.use { if (it.moveToFirst()) it.getString(0) else null }
+        val file = File(cacheDir, File(name.orEmpty()).name.ifEmpty { "shared.torrent" })
+        contentResolver.openInputStream(uri)!!.use { input ->
+            file.outputStream().use { input.copyTo(it) }
+        }
+        Uri.fromFile(file).toString()
+    } catch (_: Exception) {
+        null
     }
 
     private fun openFile(path: String): Boolean {
@@ -181,5 +211,6 @@ class MainActivity : FlutterActivity() {
         private const val NOTIFY_REQUEST = 8
         private const val STORAGE_REQUEST = 9
         private const val ENGINE_ID = "snag"
+        private const val TORRENT = "application/x-bittorrent"
     }
 }
