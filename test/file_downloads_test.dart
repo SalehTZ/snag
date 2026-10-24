@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:snag/core/format.dart';
@@ -14,6 +15,7 @@ import 'package:snag/engine/file_probe.dart';
 import 'package:snag/engine/models.dart';
 import 'package:snag/engine/output_parser.dart';
 import 'package:snag/engine/ytdlp_engine.dart';
+import 'package:snag/features/queue/transfer_details.dart';
 
 class _Engine extends YtDlpEngine {
   final started = <List<String>>[];
@@ -367,6 +369,57 @@ void main() {
       expect(p.eta, 15);
       expect(progressFrom({'totalLength': '0', 'completedLength': '0'}).total,
           isNull);
+    });
+
+    test('details: pieces, connections and torrent facts', () {
+      expect(bitfield('a0', 5), [true, false, true, false, false]);
+      expect(bitfield(null, 2), [false, false]);
+      expect(pieceRuns([true, true, false, false, true, false], 3),
+          [1.0, 0.0, 0.5]);
+
+      final direct = transferStatsFrom({
+        'completedLength': '300',
+        'downloadSpeed': '30',
+        'connections': '2',
+        'numPieces': '4',
+        'bitfield': 'c',
+      }, [
+        {
+          'index': '1',
+          'servers': [
+            {'currentUri': 'https://a.example/f', 'downloadSpeed': '10'},
+            {'currentUri': 'https://b.example/f', 'downloadSpeed': '20'},
+          ],
+        },
+      ]);
+      expect(direct.isTorrent, isFalse);
+      expect(direct.pieces, [true, true, false, false]);
+      expect([for (final c in direct.links) c.label],
+          ['b.example', 'a.example'], reason: 'fastest first');
+
+      final torrent = transferStatsFrom({
+        'dir': '/d',
+        'completedLength': '200',
+        'uploadLength': '100',
+        'numPieces': '8',
+        'numSeeders': '1',
+        'infoHash': 'abc',
+        'bittorrent': {'creationDate': 1700000000, 'comment': ' '},
+        'files': [
+          {'path': '/d/T/a.mkv', 'length': '10', 'completedLength': '5',
+           'selected': 'true'},
+          {'path': '/d/T/b.txt', 'length': '1', 'selected': 'false'},
+        ],
+      }, [
+        {'ip': '10.0.0.1', 'bitfield': 'f0', 'downloadSpeed': '5',
+         'uploadSpeed': '1'},
+      ]);
+      expect(torrent.ratio, 0.5);
+      expect(torrent.seeders, 1);
+      expect(torrent.comment, isNull);
+      expect(torrent.created?.year, 2023);
+      expect([for (final f in torrent.files) f.path], [p.join('T', 'a.mkv')]);
+      expect(torrent.links.single.progress, 0.5);
     });
 
     test('exit codes in Snag terms', () {

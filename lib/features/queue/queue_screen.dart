@@ -9,6 +9,7 @@ import '../../engine/models.dart';
 import '../../shell.dart';
 import '../../widgets/common.dart';
 import 'download_manager.dart';
+import 'transfer_details.dart';
 
 class QueueScreen extends ConsumerWidget {
   const QueueScreen({super.key});
@@ -360,6 +361,8 @@ class _TaskDetails extends ConsumerWidget {
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 16),
+          if (task.spec.kind == DownloadKind.file)
+            TransferDetails(taskId: task.id, path: task.filePath),
           if (task.status == TaskStatus.failed)
             ErrorPanel(
               message: task.failure == null

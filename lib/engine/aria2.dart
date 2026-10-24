@@ -293,6 +293,30 @@ class Aria2 {
     }
   }
 
+  /// What aria2 knows now about a download, for its details sheet: by
+  /// [taskId] while it downloads, by [path] while it shares. Null once
+  /// aria2 has let go of it; never starts aria2.
+  Future<TransferStats?> stats({String? taskId, String? path}) async {
+    final gid = _gids[taskId] ?? _seeding.value[path];
+    final endpoint = _endpoint;
+    if (gid == null || endpoint == null) return null;
+    try {
+      final uri = await endpoint;
+      final s = await _post(uri, 'aria2.tellStatus', [
+        gid,
+        ['totalLength', 'completedLength', 'uploadLength', 'downloadSpeed',
+         'uploadSpeed', 'connections', 'numSeeders', 'bitfield', 'numPieces',
+         'pieceLength', 'infoHash', 'bittorrent', 'files', 'dir'],
+      ]) as Map<String, dynamic>;
+      final links = await _post(uri,
+          s['infoHash'] == null ? 'aria2.getServers' : 'aria2.getPeers',
+          [gid]) as List;
+      return transferStatsFrom(s, links);
+    } catch (_) {
+      return null; // Done or removed between two polls.
+    }
+  }
+
   Future<void> pause(String taskId) => _onGid(taskId, 'aria2.forcePause');
 
   Future<void> resume(String taskId) => _onGid(taskId, 'aria2.unpause');
@@ -473,6 +497,119 @@ ProgressUpdate progressFrom(Map<String, dynamic> s) {
     speed: speed > 0 ? speed.toDouble() : null,
     eta: total > 0 && speed > 0 ? (total - done) / speed : null,
   );
+}
+
+/// One peer of a torrent, or one connection of a plain download.
+typedef TransferLink = ({String label, int down, int up, double? progress});
+
+/// A live look inside one aria2 download.
+@immutable
+class TransferStats {
+  const TransferStats({
+    required this.total,
+    required this.done,
+    required this.uploaded,
+    required this.down,
+    required this.up,
+    required this.connections,
+    required this.pieces,
+    required this.pieceLength,
+    required this.links,
+    this.seeders,
+    this.infoHash,
+    this.created,
+    this.comment,
+    this.files = const [],
+  });
+
+  final int total, done, uploaded, down, up, connections, pieceLength;
+
+  /// Which pieces aria2 has, in order.
+  final List<bool> pieces;
+
+  /// Fastest first.
+  final List<TransferLink> links;
+
+  // Torrents only.
+  final int? seeders;
+  final String? infoHash;
+  final DateTime? created;
+  final String? comment;
+  final List<({String path, int length, int done})> files;
+
+  bool get isTorrent => infoHash != null;
+  double? get ratio => done > 0 ? uploaded / done : null;
+}
+
+/// `aria2.tellStatus` plus `getPeers` (torrents) or `getServers` (the rest).
+TransferStats transferStatsFrom(Map<String, dynamic> s, List<Object?> links) {
+  int n(Object? v) => int.tryParse('$v') ?? 0;
+  final pieceCount = n(s['numPieces']);
+  final bt = s['bittorrent'] as Map?;
+  final comment = '${bt?['comment'] ?? ''}'.trim();
+  final dir = '${s['dir']}';
+  return TransferStats(
+    total: n(s['totalLength']),
+    done: n(s['completedLength']),
+    uploaded: n(s['uploadLength']),
+    down: n(s['downloadSpeed']),
+    up: n(s['uploadSpeed']),
+    connections: n(s['connections']),
+    pieces: bitfield(s['bitfield'] as String?, pieceCount),
+    pieceLength: n(s['pieceLength']),
+    seeders: s['infoHash'] == null ? null : n(s['numSeeders']),
+    infoHash: s['infoHash'] as String?,
+    created: bt?['creationDate'] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(n(bt!['creationDate']) * 1000),
+    comment: comment.isEmpty ? null : comment,
+    files: [
+      if (bt != null)
+        for (final f in (s['files'] as List?) ?? const [])
+          if ((f as Map)['selected'] != 'false')
+            (
+              path: p.relative('${f['path']}', from: dir),
+              length: n(f['length']),
+              done: n(f['completedLength']),
+            ),
+    ],
+    links: [
+      for (final l in links.cast<Map>())
+        if (l['servers'] case final List servers)
+          // getServers: one entry per open connection, grouped by file.
+          for (final c in servers.cast<Map>())
+            (
+              label: Uri.tryParse('${c['currentUri']}')?.host ?? '',
+              down: n(c['downloadSpeed']),
+              up: 0,
+              progress: null,
+            )
+        else
+          (
+            label: '${l['ip']}',
+            down: n(l['downloadSpeed']),
+            up: n(l['uploadSpeed']),
+            progress: pieceCount == 0
+                ? null
+                : bitfield(l['bitfield'] as String?, pieceCount)
+                        .where((b) => b)
+                        .length /
+                    pieceCount,
+          ),
+    ]..sort((a, b) => (b.down + b.up).compareTo(a.down + a.up)),
+  );
+}
+
+/// aria2's hex bitfield as one flag per piece; the high bit is piece 0.
+List<bool> bitfield(String? hex, int count) {
+  final bits = <bool>[];
+  for (final c in (hex ?? '').split('')) {
+    final v = int.tryParse(c, radix: 16) ?? 0;
+    for (var b = 3; b >= 0; b--) {
+      bits.add(v >> b & 1 == 1);
+    }
+  }
+  return List.generate(count, (i) => i < bits.length && bits[i]);
 }
 
 /// aria2's exit codes (see its manual, "EXIT STATUS") in Snag's terms.
