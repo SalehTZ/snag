@@ -3,6 +3,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:shamsi_date/shamsi_date.dart';
 
 import '../engine/binary_manager.dart';
+import '../engine/file_probe.dart';
 import '../engine/models.dart';
 import '../engine/ytdlp_engine.dart';
 import 'gen/app_localizations.dart';
@@ -94,7 +95,9 @@ extension AppStrings on AppLocalizations {
 
   /// Short description of a download, for queue and library rows.
   String summary(DownloadSpec spec) {
-    if (spec.kind == DownloadKind.file) return summaryFile;
+    if (spec.kind == DownloadKind.file) {
+      return isTorrent(spec.url) ? summaryTorrent : summaryFile;
+    }
     if (spec.templateName != null) return spec.templateName!;
     if (spec.formatId != null) return summaryFormat(spec.formatId!);
     return spec.mode == DownloadMode.audio

@@ -68,7 +68,7 @@ class FileSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l.summaryFile,
+            Text(isTorrent(file.url) ? l.summaryTorrent : l.summaryFile,
                 style: theme.textTheme.labelMedium
                     ?.copyWith(color: scheme.primary, letterSpacing: 1.2)),
             const SizedBox(height: 6),

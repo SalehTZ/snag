@@ -114,10 +114,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
     final settings = ref.read(settingsProvider);
     try {
-      // A link to a .zip or .apk: skip the seconds yt-dlp spends saying no.
-      final file = looksLikeFile(url)
-          ? await probeFile(url, proxy: settings.proxy)
-          : null;
+      // A magnet, or a link to a .zip or .apk: skip the seconds yt-dlp
+      // spends saying no.
+      final file = isMagnet(url)
+          ? magnetFile(url)
+          : looksLikeFile(url)
+              ? await probeFile(url, proxy: settings.proxy)
+              : null;
       if (!mounted || request != _request) return;
       if (file != null) return await _offer(url, showFileSheet(context, file));
 

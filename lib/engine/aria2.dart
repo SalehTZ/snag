@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../data/settings.dart';
 import 'models.dart';
@@ -25,7 +27,8 @@ class Aria2 {
   final _gids = <String, String>{};
   final _cancelled = <String>{};
 
-  static const pollInterval = Duration(seconds: 1);
+  @visibleForTesting
+  static Duration pollInterval = const Duration(seconds: 1);
 
   Stream<EngineEvent> download({
     required DownloadSpec spec,
@@ -35,7 +38,7 @@ class Aria2 {
   }) async* {
     _cancelled.remove(taskId);
     final proxy = settings.proxy?.trim() ?? '';
-    final gid = await _call(settings, 'aria2.addUri', [
+    var gid = await _call(settings, 'aria2.addUri', [
       [spec.url],
       {
         'dir': outputDir,
@@ -51,18 +54,20 @@ class Aria2 {
     if (_cancelled.contains(taskId)) await cancel(taskId);
 
     String? path;
+    var files = const <String>[];
     try {
       while (true) {
         final s = await _call(settings, 'aria2.tellStatus', [
           gid,
           ['status', 'totalLength', 'completedLength', 'downloadSpeed',
-           'errorCode', 'errorMessage', 'files'],
+           'errorCode', 'errorMessage', 'dir', 'files', 'bittorrent',
+           'followedBy'],
         ]) as Map<String, dynamic>;
-        final files = (s['files'] as List?) ?? const [];
-        final found = files.isEmpty ? '' : '${(files.first as Map)['path']}';
-        if (found.isNotEmpty && found != path) {
+        final found = resultPath(s);
+        if (found != null && found != path) {
           path = found;
-          // The server's name (Content-Disposition, redirects) wins.
+          files = filePaths(s);
+          // The server's or torrent's own name wins over the link's.
           yield MetaEvent(MediaMeta(title: p.basename(found)));
         }
         switch (s['status']) {
@@ -73,15 +78,22 @@ class Aria2 {
                 fraction: progress.fraction));
             yield ProgressEvent(progress);
           case 'complete':
-            yield FileEvent(path ?? '');
-            return;
+            // A magnet's metadata, or a .torrent fetched over HTTP, hands
+            // over to the real download under a new gid.
+            final next = (s['followedBy'] as List?)?.firstOrNull;
+            if (next == null) {
+              yield FileEvent(path ?? '');
+              return;
+            }
+            unawaited(_tryCall(settings, 'aria2.removeDownloadResult', [gid]));
+            gid = _gids[taskId] = '$next';
           case 'error':
             throw failure(s['errorCode'], s['errorMessage']);
           case 'removed':
-            if (path != null) {
-              await _deleteQuietly(path);
-              await _deleteQuietly('$path.aria2');
+            for (final f in files) {
+              await _deleteQuietly(f);
             }
+            if (path != null) await _deleteQuietly('$path.aria2');
             throw const CancelledException();
           // 'paused': nothing moves; keep asking until resumed.
         }
@@ -164,6 +176,8 @@ class Aria2 {
       _secret = List.generate(16, (_) => rng.nextInt(256).toRadixString(16))
           .join();
       final cookies = settings.cookiesFile?.trim() ?? '';
+      final state = await getApplicationSupportDirectory()
+          .then<String?>((d) => d.path, onError: (_) => null);
       await _engine.startAria2([
         '--enable-rpc',
         '--rpc-listen-all=false',
@@ -177,6 +191,10 @@ class Aria2 {
         '--max-concurrent-downloads=16',
         '--console-log-level=warn',
         '--summary-interval=0',
+        // Torrents: stop sharing once the download is done, so the queue
+        // can call it finished; keep the DHT between runs for magnets.
+        '--seed-time=0',
+        if (state != null) '--dht-file-path=${p.join(state, 'dht.dat')}',
         // shortcut: cookies are read once per aria2 run; a changed cookie
         // file applies after a restart of Snag.
         if (cookies.isNotEmpty) '--load-cookies=$cookies',
@@ -206,6 +224,26 @@ class Aria2 {
     } catch (_) {}
   }
 }
+
+/// Where a download lands: the file, or a multi-file torrent's folder.
+/// Null until aria2 knows (a magnet still fetching its metadata).
+String? resultPath(Map<String, dynamic> s) {
+  final paths = filePaths(s);
+  if (paths.isEmpty) return null;
+  final name = ((s['bittorrent'] as Map?)?['info'] as Map?)?['name'];
+  if (paths.length > 1 && name is String && name.isNotEmpty) {
+    return p.join('${s['dir']}', name);
+  }
+  return paths.first;
+}
+
+/// The real files of a download, without aria2's metadata placeholders.
+List<String> filePaths(Map<String, dynamic> s) => [
+      for (final f in (s['files'] as List?) ?? const [])
+        if ('${(f as Map)['path']}' case final path
+            when path.isNotEmpty && !path.startsWith('[METADATA]'))
+          path,
+    ];
 
 /// One `aria2.tellStatus` answer as Snag's progress.
 ProgressUpdate progressFrom(Map<String, dynamic> s) {
