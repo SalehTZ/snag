@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:snag/core/format.dart';
 import 'package:snag/data/settings.dart';
 import 'package:snag/engine/args_builder.dart';
@@ -39,6 +41,13 @@ class _Engine extends YtDlpEngine {
       const UpdateResult(changed: false);
 }
 
+class _Paths extends PathProviderPlatform with MockPlatformInterfaceMixin {
+  _Paths(this.support);
+  final String support;
+  @override
+  Future<String?> getApplicationSupportPath() async => support;
+}
+
 /// An aria2 RPC that answers tellStatus from [statuses], one per call.
 MockClient _rpc(List<Map<String, Object?>> statuses, List<String> calls) =>
     MockClient((req) async {
@@ -46,7 +55,7 @@ MockClient _rpc(List<Map<String, Object?>> statuses, List<String> calls) =>
       final method = body['method'] as String;
       calls.add(method);
       final result = switch (method) {
-        'aria2.addUri' => 'gid1',
+        'aria2.addUri' || 'aria2.addTorrent' => 'gid1',
         'aria2.tellStatus' => statuses.removeAt(0),
         _ => 'OK',
       };
@@ -216,6 +225,49 @@ void main() {
       expect(engine.started.single, contains('--stop-with-process=$pid'));
       expect(calls, containsAllInOrder(
           ['aria2.getVersion', 'aria2.addUri', 'aria2.tellStatus']));
+    });
+
+    test('a local .torrent is kept and added by its content', () async {
+      final dir = await Directory.systemTemp.createTemp('snag');
+      PathProviderPlatform.instance = _Paths(dir.path);
+      final torrent = utf8.encode('d4:infod4:name1:aee');
+
+      expect(await keepTorrent('notes.txt', utf8.encode('hello')), isNull);
+      final file = (await keepTorrent('../Ubuntu.torrent', torrent))!;
+      expect(file.name, 'Ubuntu');
+      expect(isTorrent(file.url), isTrue);
+      expect(File.fromUri(Uri.parse(file.url)).path,
+          startsWith('${dir.path}/torrents/'));
+
+      final sent = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final body = jsonDecode(req.body) as Map<String, dynamic>;
+        sent.add(body);
+        final result = switch (body['method']) {
+          'aria2.addTorrent' => 'gid1',
+          'aria2.tellStatus' => {
+              'status': 'complete',
+              'files': [
+                {'path': '/d/a'}
+              ],
+            },
+          _ => 'OK',
+        };
+        return http.Response(jsonEncode({'result': result}), 200);
+      });
+      await Aria2(_Engine(), client: client)
+          .download(
+            spec: DownloadSpec(url: file.url, kind: DownloadKind.file),
+            settings: const AppSettings(),
+            outputDir: '/d',
+            taskId: 't3',
+          )
+          .toList();
+
+      final add = sent.singleWhere((b) => b['method'] == 'aria2.addTorrent');
+      expect((add['params'] as List)[1], base64Encode(torrent));
+      expect(sent.map((b) => b['method']), isNot(contains('aria2.addUri')));
+      await dir.delete(recursive: true);
     });
 
     test('a removed download is a cancel and leaves no partial file',

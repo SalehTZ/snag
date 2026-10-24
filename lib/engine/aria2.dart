@@ -38,8 +38,12 @@ class Aria2 {
   }) async* {
     _cancelled.remove(taskId);
     final proxy = settings.proxy?.trim() ?? '';
-    var gid = await _call(settings, 'aria2.addUri', [
-      [spec.url],
+    // A .torrent Snag keeps on disk goes in by content; aria2 can't open
+    // file:// links.
+    final local = spec.url.startsWith('file:');
+    var gid = await _call(settings, local ? 'aria2.addTorrent' : 'aria2.addUri', [
+      if (local) ...[await _readTorrent(spec.url), const <String>[]]
+      else [spec.url],
       {
         'dir': outputDir,
         'split': '${settings.connections}',
@@ -215,6 +219,14 @@ class Aria2 {
     } catch (_) {
       _endpoint = null;
       rethrow;
+    }
+  }
+
+  static Future<String> _readTorrent(String url) async {
+    try {
+      return base64Encode(await File.fromUri(Uri.parse(url)).readAsBytes());
+    } on FileSystemException catch (e) {
+      throw EngineException(EngineErrorKind.fileGone, details: '$e');
     }
   }
 
