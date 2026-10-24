@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:snag/core/format.dart';
 import 'package:snag/data/settings.dart';
 import 'package:snag/engine/args_builder.dart';
 import 'package:snag/engine/aria2.dart';
@@ -91,6 +92,76 @@ void main() {
       const spec = DownloadSpec(url: 'u', kind: DownloadKind.file);
       expect(DownloadSpec.fromJson(spec.toJson()).kind, DownloadKind.file);
       expect(DownloadSpec.fromJson({'url': 'u'}).kind, DownloadKind.media);
+    });
+  });
+
+  group('torrents', () {
+    const magnet = 'magnet:?xt=urn:btih:ABC123&dn=Big%20Buck%20Bunny&xl=276445467'
+        '&tr=udp%3A%2F%2Ftracker.example%3A80';
+
+    test('magnet links are found in shared text and describe themselves', () {
+      expect(extractUrl('grab this: $magnet thanks'), magnet);
+      final f = magnetFile(magnet);
+      expect(f.name, 'Big Buck Bunny');
+      expect(f.size, 276445467);
+      expect(f.host, '');
+      expect(isTorrent(magnet), isTrue);
+      expect(isTorrent('https://x.org/a.torrent'), isTrue);
+      expect(isTorrent('https://x.org/a.zip'), isFalse);
+    });
+
+    test('result path: a multi-file torrent lands in its folder', () {
+      final s = {
+        'dir': '/d',
+        'bittorrent': {
+          'info': {'name': 'Album'}
+        },
+        'files': [
+          {'path': '/d/Album/01.flac'},
+          {'path': '/d/Album/02.flac'},
+        ],
+      };
+      expect(resultPath(s), '/d/Album');
+      expect(resultPath({
+        'files': [
+          {'path': '[METADATA]ABC123'}
+        ]
+      }), isNull);
+    });
+
+    test('a magnet hands over from its metadata to the real download',
+        () async {
+      final calls = <String>[];
+      final aria2 = Aria2(_Engine(),
+          client: _rpc([
+            {
+              'status': 'complete',
+              'files': [
+                {'path': '[METADATA]ABC123'}
+              ],
+              'followedBy': ['gid2'],
+            },
+            {
+              'status': 'complete',
+              'dir': '/d',
+              'files': [
+                {'path': '/d/Big Buck Bunny.mp4'}
+              ],
+            },
+          ], calls));
+      Aria2.pollInterval = Duration.zero;
+
+      final events = await aria2
+          .download(
+            spec: const DownloadSpec(url: magnet, kind: DownloadKind.file),
+            settings: const AppSettings(),
+            outputDir: '/d',
+            taskId: 't3',
+          )
+          .toList();
+
+      expect(events.whereType<FileEvent>().single.path, '/d/Big Buck Bunny.mp4');
+      expect(calls.where((c) => c == 'aria2.tellStatus'), hasLength(2));
     });
   });
 

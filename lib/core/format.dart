@@ -2,11 +2,12 @@
 /// `Fmt` in lib/l10n/l10n.dart instead.
 library;
 
-/// Pulls the first http(s) URL out of arbitrary text (shared text often has
-/// a title in front of the link).
+/// Pulls the first http(s) URL or magnet link out of arbitrary text (shared
+/// text often has a title in front of the link).
 String? extractUrl(String? text) {
   if (text == null) return null;
-  final match = RegExp(r'https?://[^\s<>"]+', caseSensitive: false)
+  final match = RegExp(r'(?:https?://|magnet:\?)[^\s<>"]+',
+          caseSensitive: false)
       .firstMatch(text.trim());
   return match?.group(0);
 }

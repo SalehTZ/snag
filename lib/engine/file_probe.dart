@@ -13,7 +13,7 @@ class RemoteFile {
   final String name;
   final int? size;
 
-  String get host => Uri.tryParse(url)?.host ?? '';
+  String get host => isMagnet(url) ? '' : Uri.tryParse(url)?.host ?? '';
 }
 
 /// Extensions that name a file, not a page, so Snag can skip asking yt-dlp.
@@ -27,6 +27,24 @@ const _fileExtensions = {
   'pdf', 'epub', 'mobi', 'djvu', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
   'csv', 'json', 'txt', 'bin', 'torrent',
 };
+
+bool isMagnet(String url) => url.toLowerCase().startsWith('magnet:');
+
+/// What a magnet link says about itself: its display name and, sometimes,
+/// its size. Nothing to ask a server.
+RemoteFile magnetFile(String url) {
+  final params = Uri.tryParse(url)?.queryParameters ?? const {};
+  final hash = params['xt']?.split(':').last;
+  return RemoteFile(
+    url: url,
+    name: _safe(params['dn'] ?? '') ?? hash ?? 'magnet',
+    size: int.tryParse(params['xl'] ?? ''),
+  );
+}
+
+bool isTorrent(String url) =>
+    isMagnet(url) ||
+    (Uri.tryParse(url)?.path.toLowerCase().endsWith('.torrent') ?? false);
 
 bool looksLikeFile(String url) {
   final path = Uri.tryParse(url)?.path ?? '';
