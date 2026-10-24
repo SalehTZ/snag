@@ -761,5 +761,16 @@
         "type": "int"
       }
     }
-  }
+  },
+  "sheetDownloadFiles": "{count, plural, =1{Download 1 file} other{Download {count} files}}",
+  "@sheetDownloadFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sheetTorrentReadingFiles": "Reading the file list…",
+  "sheetTorrentFilesFailed": "Couldn't read the file list. Download gets everything."
 }

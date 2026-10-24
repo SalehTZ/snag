@@ -19,6 +19,7 @@ import 'package:snag/data/providers.dart';
 import 'package:snag/data/records.dart';
 import 'package:snag/data/settings.dart';
 import 'package:snag/engine/args_builder.dart';
+import 'package:snag/engine/aria2.dart';
 import 'package:snag/engine/binary_manager.dart';
 import 'package:snag/engine/models.dart';
 import 'package:snag/engine/ytdlp_engine.dart';
@@ -53,6 +54,20 @@ class FakeEngine extends YtDlpEngine {
   @override
   Future<UpdateResult> update(AppSettings settings) async =>
       const UpdateResult(changed: true, version: '2026.09.30');
+}
+
+/// A torrent whose file list is already read.
+class FakeAria2 extends Aria2 {
+  FakeAria2() : super(FakeEngine());
+  @override
+  Future<List<TorrentFile>> torrentFiles(String url, AppSettings s) async => [
+        (index: 1, path: 'Big Buck Bunny.mp4', size: 263 * 1024 * 1024),
+        (index: 2, path: 'Big Buck Bunny.en.srt', size: 140 * 1024),
+        (index: 3, path: 'Extras/Making of.mp4', size: 412 * 1024 * 1024),
+        (index: 4, path: 'Extras/Poster.jpg', size: 2 * 1024 * 1024),
+      ];
+  @override
+  Future<void> stopFiles(String url, AppSettings s) async {}
 }
 
 class FakeQueue extends DownloadManager {
@@ -377,6 +392,28 @@ void main() {
         size: phone,
         dpr: 2.5,
         brightness: b,
+      );
+    });
+
+    testWidgets('torrent sheet $tag', (t) async {
+      await shoot(
+        t,
+        'torrent_sheet_phone_$tag',
+        const Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: FileSheet(
+              file: RemoteFile(
+                url: 'magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c',
+                name: 'Big Buck Bunny',
+              ),
+            ),
+          ),
+        ),
+        size: phone,
+        dpr: 2.5,
+        brightness: b,
+        overrides: [aria2Provider.overrideWithValue(FakeAria2())],
       );
     });
 

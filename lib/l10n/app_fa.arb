@@ -319,5 +319,8 @@
   "supportNotNow": "الان نه",
   "settingsSeeding": "ادامهٔ اشتراک‌گذاری تورنت‌ها",
   "settingsSeedingSubtitle": "وقتی به اندازهٔ دریافتی به اشتراک بگذارید یا برنامه بسته شود، زودتر متوقف می‌شود",
-  "settingsSeedingHours": "{count, plural, other{تا {count} ساعت}}"
+  "settingsSeedingHours": "{count, plural, other{تا {count} ساعت}}",
+  "sheetDownloadFiles": "{count, plural, other{دانلود {count} فایل}}",
+  "sheetTorrentReadingFiles": "در حال خواندن فهرست فایل‌ها…",
+  "sheetTorrentFilesFailed": "فهرست فایل‌ها خوانده نشد. با دانلود، همه‌چیز گرفته می‌شود."
 }
