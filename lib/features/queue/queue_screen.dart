@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../core/platform_actions.dart';
 import '../../core/theme/motion.dart';
+import '../../data/providers.dart';
 import '../../engine/models.dart';
 import '../../shell.dart';
 import '../../widgets/common.dart';
@@ -80,7 +81,10 @@ class QueueScreen extends ConsumerWidget {
                     for (final t in active) TaskRow(task: t),
                   ],
                   if (waiting.isNotEmpty) ...[
-                    SectionHeader(l.queueWaiting(waiting.length)),
+                    SectionHeader(
+                      l.queueWaiting(waiting.length),
+                      trailing: const _ConcurrencyButton(),
+                    ),
                     for (final t in waiting) TaskRow(task: t),
                   ],
                   if (finished.isNotEmpty) ...[
@@ -90,6 +94,36 @@ class QueueScreen extends ConsumerWidget {
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// How many downloads run at once, right where the waiting ones are.
+class _ConcurrencyButton extends ConsumerWidget {
+  const _ConcurrencyButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final limit = ref.watch(settingsProvider.select((s) => s.concurrency));
+    final l = context.l10n;
+    return MenuAnchor(
+      menuChildren: [
+        for (var n = 1; n <= 8; n++)
+          MenuItemButton(
+            leadingIcon: Icon(n == limit
+                ? Icons.radio_button_checked_rounded
+                : Icons.radio_button_unchecked_rounded),
+            onPressed: () => ref
+                .read(settingsProvider.notifier)
+                .update((s) => s.copyWith(concurrency: n)),
+            child: Text(l.queueAtATime(n)),
+          ),
+      ],
+      builder: (context, menu, _) => TextButton.icon(
+        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        icon: const Icon(Icons.stacked_line_chart_rounded, size: 18),
+        label: Text(l.queueAtATime(limit)),
+      ),
     );
   }
 }

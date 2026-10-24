@@ -359,3 +359,38 @@ const monoStyle = TextStyle(
   fontFamily: 'monospace',
   fontFamilyFallback: ['Cascadia Mono', 'Consolas', 'Menlo', 'SF Mono', 'DejaVu Sans Mono', 'Noto Sans Mono'],
 );
+
+/// A 1 to 16 slider for aria2 connections, in Settings and on a download.
+class ConnectionsTile extends StatelessWidget {
+  const ConnectionsTile({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+    this.icon,
+  });
+
+  final String title;
+  final int value;
+  final ValueChanged<int> onChanged;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final digits = context.fmt.digits(value);
+    return ListTile(
+      contentPadding: icon == null ? EdgeInsets.zero : null,
+      leading: icon == null ? null : Icon(icon),
+      title: Text(title),
+      subtitle: Slider(
+        value: value.toDouble(),
+        min: 1,
+        max: 16,
+        divisions: 15,
+        label: digits,
+        onChanged: (v) => onChanged(v.round()),
+      ),
+      trailing: Text(digits, style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+}

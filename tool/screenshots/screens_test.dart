@@ -7,6 +7,7 @@
 // Output lands in tool/screenshots/goldens/.
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -68,6 +69,9 @@ class FakeAria2 extends Aria2 {
       ];
   @override
   Future<void> stopFiles(String url, AppSettings s) async {}
+  @override
+  ValueListenable<Map<String, String>> get seeding =>
+      ValueNotifier(const {'/z.mp4': 'gid'});
 }
 
 class FakeQueue extends DownloadManager {
@@ -351,7 +355,10 @@ void main() {
     });
 
     testWidgets('library $tag', (t) async {
-      final o = [tabProvider.overrideWith(() => TabAt(AppTab.library))];
+      final o = [
+        tabProvider.overrideWith(() => TabAt(AppTab.library)),
+        aria2Provider.overrideWithValue(FakeAria2()),
+      ];
       await shoot(t, 'library_desktop_$tag', const AppShell(), size: desktop, brightness: b, overrides: o);
       await shoot(t, 'library_empty_phone_$tag', const AppShell(),
           size: phone, dpr: 2.5, brightness: b, overrides: o, withHistory: false);

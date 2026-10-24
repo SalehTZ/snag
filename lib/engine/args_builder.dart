@@ -50,6 +50,7 @@ abstract final class ArgsBuilder {
     bool allowBrowserCookies = true,
   }) {
     final s = settings;
+    final connections = spec.connections ?? s.connections;
     final args = <String>[
       ...common(s, tools, allowBrowserCookies: allowBrowserCookies),
       // Machine-readable plumbing. `--print` implies --quiet, so force the
@@ -75,7 +76,7 @@ abstract final class ArgsBuilder {
       if (s.useAria2c) ...[
         '--downloader', tools.aria2c ?? 'aria2c',
         '--downloader-args',
-        'aria2c:-x ${s.connections} -s ${s.connections} -k 1M',
+        'aria2c:-x $connections -s $connections -k 1M',
       ],
     ];
 

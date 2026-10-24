@@ -25,6 +25,15 @@ void main() {
   const url = 'https://example.com/watch?v=1';
 
   group('download args', () {
+    test('a download\'s own connections beat the setting', () {
+      const aria2 = AppSettings(useAria2c: true, connections: 8);
+      expect(valueOf(build(const DownloadSpec(url: url), settings: aria2),
+          '--downloader-args'), 'aria2c:-x 8 -s 8 -k 1M');
+      expect(valueOf(
+          build(const DownloadSpec(url: url, connections: 3), settings: aria2),
+          '--downloader-args'), 'aria2c:-x 3 -s 3 -k 1M');
+    });
+
     test('url is last and protected by --', () {
       final args = build(const DownloadSpec(url: url));
       expect(args.last, url);

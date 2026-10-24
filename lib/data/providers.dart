@@ -113,7 +113,14 @@ final engineProvider = Provider<YtDlpEngine>((ref) {
   return DesktopEngine(ref.watch(binaryManagerProvider));
 });
 
-final aria2Provider = Provider<Aria2>((ref) => Aria2(ref.watch(engineProvider)));
+final aria2Provider = Provider<Aria2>((ref) {
+  final aria2 = Aria2(ref.watch(engineProvider));
+  // Turning "Keep sharing" off stops what is sharing now, not just later.
+  ref.listen(settingsProvider.select((s) => s.seedHours), (_, hours) {
+    if (hours == 0) aria2.stopAllSharing();
+  });
+  return aria2;
+});
 
 // ------------------------------------------------------------------ history
 

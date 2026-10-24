@@ -67,6 +67,7 @@ void main() {
       subtitles: false,
       templateName: 'T',
       templateArgs: '-x',
+      connections: 4,
     );
     final back = DownloadSpec.fromJson(
         jsonDecode(jsonEncode(spec.toJson())) as Map<String, dynamic>);

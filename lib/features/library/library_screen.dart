@@ -159,7 +159,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 }
 
-enum _RowAction { open, reveal, again, copy, remove, delete }
+enum _RowAction { open, reveal, again, copy, stopSharing, remove, delete }
 
 class _HistoryRow extends ConsumerWidget {
   const _HistoryRow({required this.item});
@@ -173,6 +173,7 @@ class _HistoryRow extends ConsumerWidget {
     final isAudio = item.spec.mode == DownloadMode.audio;
     final l = context.l10n;
     final fmt = context.fmt;
+    final aria2 = ref.watch(aria2Provider);
 
     final meta = [
       if (item.meta.uploader != null) item.meta.uploader!,
@@ -230,6 +231,25 @@ class _HistoryRow extends ConsumerWidget {
                       style: theme.textTheme.labelSmall
                           ?.copyWith(color: scheme.primary)),
                 ),
+                ValueListenableBuilder(
+                  valueListenable: aria2.seeding,
+                  builder: (context, seeding, _) =>
+                      !seeding.containsKey(item.filePath)
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding:
+                                  const EdgeInsetsDirectional.only(start: 12),
+                              child: Row(mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                Icon(Icons.upload_rounded,
+                                    size: 14, color: scheme.tertiary),
+                                const SizedBox(width: 2),
+                                Text(l.librarySharing,
+                                    style: theme.textTheme.labelSmall
+                                        ?.copyWith(color: scheme.tertiary)),
+                              ]),
+                            ),
+                ),
               ]),
             ]),
           ),
@@ -242,6 +262,7 @@ class _HistoryRow extends ConsumerWidget {
                 PlatformActions.revealInFolder(item.filePath!),
               _RowAction.again => LibraryActions.redownload(context, ref, item),
               _RowAction.copy => LibraryActions.copyLink(context, item),
+              _RowAction.stopSharing => aria2.stopSharing(item.filePath!),
               _RowAction.remove => LibraryActions.removeEntry(context, ref, item),
               _RowAction.delete => LibraryActions.deleteFile(context, ref, item),
             },
@@ -272,6 +293,13 @@ class _HistoryRow extends ConsumerWidget {
                     leading: const Icon(Icons.link_rounded),
                     title: Text(l.commonCopyLink)),
               ),
+              if (aria2.seeding.value.containsKey(item.filePath))
+                PopupMenuItem(
+                  value: _RowAction.stopSharing,
+                  child: ListTile(
+                      leading: const Icon(Icons.stop_circle_outlined),
+                      title: Text(l.libraryStopSharing)),
+                ),
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: _RowAction.remove,

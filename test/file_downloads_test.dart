@@ -200,8 +200,40 @@ void main() {
       expect(events.whereType<FileEvent>().single.path, '/d/Big Buck Bunny.mp4');
       // Still sharing: its result stays until it is stopped.
       expect(calls, isNot(contains('aria2.removeDownloadResult')));
+      expect(aria2.seeding.value.keys, ['/d/Big Buck Bunny.mp4']);
       await aria2.stopSharing('/d/Big Buck Bunny.mp4');
       expect(calls.last, 'aria2.forceRemove');
+      expect(aria2.seeding.value, isEmpty);
+    });
+
+    test('a torrent done sharing leaves the sharing list', () async {
+      final aria2 = Aria2(_Engine(),
+          client: _rpc([
+            {
+              'status': 'active',
+              'seeder': 'true',
+              'dir': '/d',
+              'files': [
+                {'path': '/d/a.iso'}
+              ],
+            },
+            {'status': 'complete'},
+          ], []));
+      Aria2.pollInterval = Duration.zero;
+      Aria2.sharingInterval = Duration.zero;
+      addTearDown(() => Aria2.sharingInterval = const Duration(seconds: 10));
+
+      await aria2
+          .download(
+            spec: const DownloadSpec(url: magnet, kind: DownloadKind.file),
+            settings: const AppSettings(seedHours: 1),
+            outputDir: '/d',
+            taskId: 't5',
+          )
+          .toList();
+      expect(aria2.seeding.value.keys, ['/d/a.iso']);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(aria2.seeding.value, isEmpty);
     });
   });
 
