@@ -208,8 +208,8 @@
   "settingsSpeedLimit": "محدودیت سرعت",
   "settingsUnlimited": "نامحدود",
   "settingsSpeedLimitHelper": "بایت بر ثانیه، مثلاً 2M یا 500K",
-  "settingsAria2c": "استفاده از aria2c",
-  "settingsAria2cSubtitle": "دانلود سریع‌تر با چند اتصال (aria2c باید نصب باشد)",
+  "settingsAria2c": "استفاده از aria2 برای سایت‌های ویدیو هم",
+  "settingsAria2cSubtitle": "دانلود سریع‌تر ویدیو با چند اتصال",
   "settingsPowerTools": "ابزارهای پیشرفته",
   "settingsTemplates": "الگوهای فرمان",
   "settingsTemplatesSubtitle": "مجموعه‌های ذخیره‌شده از پرچم‌های yt\u2060-\u2060dlp",
@@ -303,5 +303,14 @@
   "cryptoNetworkLabel": "هنگام برداشت این شبکه را انتخاب کنید: {label}",
   "folderNotAllowedTitle": "پوشه‌ای داخل Download یا Documents انتخاب کنید",
   "folderNotAllowedBody": "اندروید به برنامه‌ها اجازه می‌دهد فقط در Download یا Documents (یا پوشه‌های داخل آن‌ها) فایل ذخیره کنند. {folder} بیرون از این‌هاست، پس دانلود در آنجا ناموفق می‌شود.",
-  "folderNotAllowedOk": "انتخاب پوشه‌ی دیگر"
+  "folderNotAllowedOk": "انتخاب پوشه‌ی دیگر",
+  "errorAria2Missing": "برای لینک‌های مستقیم فایل به aria2 نیاز است. آن را از تنظیمات › اجزا نصب کنید.",
+  "errorFileGone": "این فایل دیگر در این لینک نیست. شاید لینک منقضی شده باشد.",
+  "summaryFile": "فایل",
+  "statusPaused": "متوقف‌شده",
+  "queuePause": "توقف",
+  "queueResume": "ادامه",
+  "settingsConnections": "اتصال برای هر دانلود",
+  "purposeAria2": "فایل‌های مستقیم را با چند اتصال هم‌زمان دانلود می‌کند.",
+  "sheetDownloadFile": "دانلود فایل"
 }

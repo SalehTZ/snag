@@ -7,11 +7,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
 import '../../data/records.dart';
+import '../../engine/aria2.dart';
 import '../../engine/models.dart';
 import '../../engine/output_parser.dart';
 import '../../engine/ytdlp_engine.dart';
 
-enum TaskStatus { queued, running, processing, completed, failed, cancelled }
+enum TaskStatus {
+  queued,
+  running,
+  paused,
+  processing,
+  completed,
+  failed,
+  cancelled,
+}
 
 @immutable
 class DownloadTask {
@@ -47,6 +56,7 @@ class DownloadTask {
   bool get isActive =>
       status == TaskStatus.queued ||
       status == TaskStatus.running ||
+      status == TaskStatus.paused ||
       status == TaskStatus.processing;
   bool get isFinished => !isActive;
 
@@ -94,6 +104,7 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
   }
 
   YtDlpEngine get _engine => ref.read(engineProvider);
+  Aria2 get _aria2 => ref.read(aria2Provider);
 
   String _newId() =>
       '${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}'
@@ -120,7 +131,21 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
       _patch(id, (t) => t.copyWith(status: TaskStatus.cancelled));
       return;
     }
+    if (task.spec.kind == DownloadKind.file) return _aria2.cancel(id);
     await _engine.cancel(id);
+  }
+
+  /// File downloads only: aria2 can stop and pick up where it left off.
+  Future<void> pause(String id) async {
+    _patch(id, (t) => t.copyWith(status: TaskStatus.paused));
+    await _aria2.pause(id);
+    // A paused download no longer holds a slot.
+    _pump();
+  }
+
+  Future<void> resume(String id) async {
+    _patch(id, (t) => t.copyWith(status: TaskStatus.running));
+    await _aria2.resume(id);
   }
 
   void retry(String id) {
@@ -191,7 +216,9 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
       return;
     }
 
-    final stream = _engine.download(
+    final stream = (task.spec.kind == DownloadKind.file
+        ? _aria2.download
+        : _engine.download)(
       spec: task.spec,
       settings: settings,
       outputDir: outputDir,
@@ -226,6 +253,8 @@ class DownloadManager extends Notifier<List<DownloadTask>> {
         final now = DateTime.now();
         final last = _lastEmit[id];
         final done = progress.status == 'finished';
+        // A poll that left aria2 before the pause landed.
+        if (_find(id)?.status == TaskStatus.paused) return;
         if (!done &&
             last != null &&
             now.difference(last) < const Duration(milliseconds: 100)) {

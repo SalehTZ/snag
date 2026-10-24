@@ -32,6 +32,7 @@ class AppSettings {
     this.rateLimit,
     this.useAria2c = false,
     this.concurrency = 2,
+    this.connections = 8,
     this.restrictFilenames = false,
     this.ytDlpPath,
     this.ffmpegPath,
@@ -72,6 +73,9 @@ class AppSettings {
   final String? rateLimit;
   final bool useAria2c;
   final int concurrency;
+
+  /// aria2 connections per file download (and per video, with aria2 on).
+  final int connections;
   final bool restrictFilenames;
 
   /// Manual binary overrides (desktop). Null = managed by Snag.
@@ -108,6 +112,7 @@ class AppSettings {
     String? Function()? rateLimit,
     bool? useAria2c,
     int? concurrency,
+    int? connections,
     bool? restrictFilenames,
     String? Function()? ytDlpPath,
     String? Function()? ffmpegPath,
@@ -141,6 +146,7 @@ class AppSettings {
       rateLimit: rateLimit != null ? rateLimit() : this.rateLimit,
       useAria2c: useAria2c ?? this.useAria2c,
       concurrency: concurrency ?? this.concurrency,
+      connections: connections ?? this.connections,
       restrictFilenames: restrictFilenames ?? this.restrictFilenames,
       ytDlpPath: ytDlpPath != null ? ytDlpPath() : this.ytDlpPath,
       ffmpegPath: ffmpegPath != null ? ffmpegPath() : this.ffmpegPath,
@@ -174,6 +180,7 @@ class AppSettings {
         'rateLimit': rateLimit,
         'useAria2c': useAria2c,
         'concurrency': concurrency,
+        'connections': connections,
         'restrictFilenames': restrictFilenames,
         'ytDlpPath': ytDlpPath,
         'ffmpegPath': ffmpegPath,
@@ -213,6 +220,7 @@ class AppSettings {
       rateLimit: j['rateLimit'] as String?,
       useAria2c: j['useAria2c'] as bool? ?? d.useAria2c,
       concurrency: (j['concurrency'] as int? ?? d.concurrency).clamp(1, 8),
+      connections: (j['connections'] as int? ?? d.connections).clamp(1, 16),
       restrictFilenames: j['restrictFilenames'] as bool? ?? d.restrictFilenames,
       ytDlpPath: j['ytDlpPath'] as String?,
       ffmpegPath: j['ffmpegPath'] as String?,

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
 import '../../data/providers.dart';
-import '../../engine/models.dart';
 import '../../shell.dart';
 import '../../widgets/common.dart';
 import '../library/library_actions.dart';
@@ -37,9 +36,7 @@ class RecentStrip extends ConsumerWidget {
             url: item.meta.thumbnail,
             width: 88,
             radius: 12,
-            icon: item.spec.mode == DownloadMode.audio
-                ? Icons.music_note_rounded
-                : Icons.movie_outlined,
+            icon: kindIcon(item.spec),
           ),
           title: Text(item.title,
               textDirection: contentDirection(item.title),

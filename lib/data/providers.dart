@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/android_engine.dart';
+import '../engine/aria2.dart';
 import '../engine/binary_manager.dart';
 import '../engine/desktop_engine.dart';
 import '../engine/ytdlp_engine.dart';
@@ -111,6 +112,8 @@ final engineProvider = Provider<YtDlpEngine>((ref) {
   if (Platform.isAndroid) return AndroidEngine();
   return DesktopEngine(ref.watch(binaryManagerProvider));
 });
+
+final aria2Provider = Provider<Aria2>((ref) => Aria2(ref.watch(engineProvider)));
 
 // ------------------------------------------------------------------ history
 

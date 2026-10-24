@@ -63,6 +63,8 @@ extension AppStrings on AppLocalizations {
       EngineErrorKind.folderNotWritable => errorFolderNotWritable,
       EngineErrorKind.engineStart => errorEngineStart,
       EngineErrorKind.invalidLink => homeInvalidLink,
+      EngineErrorKind.aria2Missing => errorAria2Missing,
+      EngineErrorKind.fileGone => errorFileGone,
       // yt-dlp's own words beat a vague "something went wrong".
       EngineErrorKind.unknown => error.raw ?? errorUnknown,
     };
@@ -92,6 +94,7 @@ extension AppStrings on AppLocalizations {
 
   /// Short description of a download, for queue and library rows.
   String summary(DownloadSpec spec) {
+    if (spec.kind == DownloadKind.file) return summaryFile;
     if (spec.templateName != null) return spec.templateName!;
     if (spec.formatId != null) return summaryFormat(spec.formatId!);
     return spec.mode == DownloadMode.audio
@@ -103,6 +106,7 @@ extension AppStrings on AppLocalizations {
         Component.ytDlp => purposeYtDlp,
         Component.ffmpeg => purposeFfmpeg,
         Component.deno => purposeDeno,
+        Component.aria2c => purposeAria2,
       };
 
   String installStage(InstallStage s) => switch (s) {

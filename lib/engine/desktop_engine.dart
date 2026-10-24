@@ -17,6 +17,7 @@ class DesktopEngine extends YtDlpEngine {
 
   final BinaryManager binaries;
   final _running = <String, Process>{};
+  Process? _aria2;
 
   /// Tasks between runLines() and process exit, including startup.
   final _inFlight = <String>{};
@@ -41,7 +42,9 @@ class DesktopEngine extends YtDlpEngine {
     final ffmpeg =
         await binaries.resolve(Component.ffmpeg, override: s.ffmpegPath);
     final deno = await binaries.resolve(Component.deno);
+    final aria2c = await binaries.resolve(Component.aria2c);
     return ToolPaths(
+      aria2c: aria2c.path,
       // A directory lets yt-dlp find ffprobe next to ffmpeg.
       ffmpeg: ffmpeg.path == null ? null : p.dirname(ffmpeg.path!),
       deno: deno.path,
@@ -137,6 +140,19 @@ class DesktopEngine extends YtDlpEngine {
     unawaited(Future.delayed(const Duration(seconds: 4), () {
       if (_running.containsKey(taskId)) process.kill(ProcessSignal.sigkill);
     }));
+  }
+
+  @override
+  Future<void> startAria2(List<String> args, AppSettings settings) async {
+    final status = await binaries.resolve(Component.aria2c);
+    if (!status.available) {
+      throw EngineException(EngineErrorKind.aria2Missing);
+    }
+    _aria2?.kill();
+    final process = _aria2 = await Process.start(status.path!, args);
+    // Unread pipes fill up and stall aria2c.
+    process.stdout.drain<void>();
+    process.stderr.drain<void>();
   }
 
   @override

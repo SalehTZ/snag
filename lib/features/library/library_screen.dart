@@ -190,7 +190,7 @@ class _HistoryRow extends ConsumerWidget {
             width: compact ? 104 : 136,
             radius: 14,
             duration: item.meta.duration,
-            icon: isAudio ? Icons.music_note_rounded : Icons.movie_outlined,
+            icon: kindIcon(item.spec),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -216,7 +216,12 @@ class _HistoryRow extends ConsumerWidget {
                   )),
               const SizedBox(height: 6),
               Row(children: [
-                Icon(isAudio ? Icons.music_note_rounded : Icons.movie_rounded,
+                Icon(
+                    item.spec.kind == DownloadKind.file
+                        ? Icons.insert_drive_file_rounded
+                        : isAudio
+                            ? Icons.music_note_rounded
+                            : Icons.movie_rounded,
                     size: 14, color: scheme.primary),
                 const SizedBox(width: 4),
                 Flexible(
