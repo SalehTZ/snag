@@ -69,6 +69,12 @@ class FakeComponents extends ComponentsController {
   Map<Component, ComponentState> build() => states;
 }
 
+/// Enough downloads for Home's first donation ask.
+class LongHistory extends HistoryNotifier {
+  @override
+  List<HistoryItem> build() => [...history, ...history];
+}
+
 class TabAt extends TabNotifier {
   TabAt(this.tab);
   final AppTab tab;
@@ -312,6 +318,12 @@ void main() {
     testWidgets('home $tag', (t) async {
       await shoot(t, 'home_desktop_$tag', const AppShell(), size: desktop, brightness: b);
       await shoot(t, 'home_phone_$tag', const AppShell(), size: phone, dpr: 2.5, brightness: b);
+    });
+
+    testWidgets('home support $tag', (t) async {
+      await shoot(t, 'home_support_phone_$tag', const AppShell(),
+          size: phone, dpr: 2.5, brightness: b,
+          overrides: [historyProvider.overrideWith(LongHistory.new)]);
     });
 
     testWidgets('queue $tag', (t) async {

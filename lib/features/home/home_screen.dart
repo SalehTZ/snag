@@ -19,6 +19,7 @@ import '../../widgets/shapes.dart';
 import '../download_sheet/download_sheet.dart';
 import '../download_sheet/file_sheet.dart';
 import '../queue/download_manager.dart';
+import '../settings/support_card.dart';
 import 'recent_strip.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -219,6 +220,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 600;
     final hasText = _controller.text.trim().isNotEmpty;
+    final downloads = ref.watch(historyProvider).length;
+    final askForSupport = shouldAskForSupport(
+        downloads: downloads,
+        askedAt: ref.watch(settingsProvider.select((s) => s.supportAskedAt)));
 
     final content = ReadableWidth(
       maxWidth: 720,
@@ -296,6 +301,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         message: l.engineError(_error!),
                         details: l.errorDetails(_error!),
                         onRetry: _fetch,
+                      ),
+                    ),
+            ),
+            AnimatedSize(
+              duration: Motion.of(context, Motion.medium),
+              curve: Motion.spatial,
+              child: !askForSupport
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 40),
+                      child: SupportCard(
+                        onClose: () => ref
+                            .read(settingsProvider.notifier)
+                            .update((s) =>
+                                s.copyWith(supportAskedAt: downloads)),
                       ),
                     ),
             ),
