@@ -72,7 +72,77 @@ class FakeAria2 extends Aria2 {
   @override
   ValueListenable<Map<String, String>> get seeding =>
       ValueNotifier(const {'/z.mp4': 'gid'});
+  @override
+  Future<TransferStats?> stats({String? taskId, String? path}) async =>
+      switch (taskId) {
+        'tt' => torrentStats,
+        't6' => directStats,
+        _ => null,
+      };
 }
+
+/// A piece map with a few fronts moving, like aria2's split ranges.
+List<bool> fronts(int count, List<(int, int)> runs) => List.generate(
+    count, (i) => runs.any((r) => i >= r.$1 && i < r.$2));
+
+final directStats = TransferStats(
+  total: 754 * 1024 * 1024,
+  done: 412 * 1024 * 1024,
+  uploaded: 0,
+  down: 9 * 1024 * 1024,
+  up: 0,
+  connections: 8,
+  pieceLength: 1024 * 1024,
+  pieces: fronts(754, [(0, 120), (188, 260), (377, 470), (565, 640)]),
+  links: [
+    for (final (i, kb) in [2300, 1900, 1400, 1200, 900, 700, 400, 200].indexed)
+      (label: 'mirror${i % 3 + 1}.debian.org', down: kb * 1024, up: 0,
+          progress: null),
+  ],
+);
+
+final torrentStats = TransferStats(
+  total: 677 * 1024 * 1024,
+  done: 402 * 1024 * 1024,
+  uploaded: 131 * 1024 * 1024,
+  down: 4.2 * 1024 * 1024 ~/ 1,
+  up: 610 * 1024,
+  connections: 23,
+  seeders: 9,
+  pieceLength: 512 * 1024,
+  pieces: [for (var i = 0; i < 1354; i++) (i * 7919) % 100 < 59],
+  infoHash: 'dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c',
+  created: DateTime(2024, 3, 2),
+  comment: 'Big Buck Bunny, Blender Foundation',
+  files: [
+    (path: 'Big Buck Bunny.mp4', length: 263 * 1024 * 1024, done: 263 * 1024 * 1024),
+    (path: 'Big Buck Bunny.en.srt', length: 140 * 1024, done: 140 * 1024),
+    (path: 'Extras/Making of.mp4', length: 412 * 1024 * 1024, done: 139 * 1024 * 1024),
+  ],
+  links: [
+    (label: '185.21.216.143', down: 1600 * 1024, up: 120 * 1024, progress: 1.0),
+    (label: '94.130.12.7', down: 1100 * 1024, up: 300 * 1024, progress: 1.0),
+    (label: '2a01:4f8:c17::1', down: 800 * 1024, up: 90 * 1024, progress: 0.71),
+    (label: '73.42.188.20', down: 420 * 1024, up: 60 * 1024, progress: 0.38),
+    (label: '151.80.3.99', down: 0, up: 40 * 1024, progress: 0.12),
+  ],
+);
+
+final detailTasks = [
+  DownloadTask(
+    id: 'tt',
+    spec: const DownloadSpec(
+        url: 'magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c',
+        kind: DownloadKind.file),
+    meta: const MediaMeta(title: 'Big Buck Bunny'),
+    createdAt: now,
+    status: TaskStatus.running,
+    progress: const ProgressUpdate(
+        status: 'downloading', downloaded: 402 * 1024 * 1024,
+        total: 677 * 1024 * 1024),
+  ),
+  tasks.firstWhere((t) => t.id == 't6'),
+];
 
 class FakeQueue extends DownloadManager {
   FakeQueue(this.tasks);
@@ -424,6 +494,25 @@ void main() {
       );
     });
 
+    for (final (name, title) in [
+      ('torrent', 'Big Buck Bunny'),
+      ('file', 'debian-13.1.0-amd64-netinst.iso'),
+    ]) {
+      testWidgets('$name details $tag', (t) async {
+        await shoot(t, '${name}_details_phone_$tag', const AppShell(),
+            size: const Size(412, 1400), dpr: 2, brightness: b,
+            overrides: [
+              tabProvider.overrideWith(() => TabAt(AppTab.queue)),
+              downloadManagerProvider.overrideWith(() => FakeQueue(detailTasks)),
+              aria2Provider.overrideWithValue(FakeAria2()),
+            ],
+            before: (t) async {
+              await t.pump();
+              await t.tap(find.text(title).first);
+            });
+      });
+    }
+
     testWidgets('setup $tag', (t) async {
       await shoot(t, 'setup_desktop_$tag', const SetupScreen(), size: desktop, brightness: b);
     });
@@ -441,6 +530,15 @@ void main() {
       tabProvider.overrideWith(() => TabAt(AppTab.queue)),
       downloadManagerProvider.overrideWith(() => FakeQueue(tasks)),
     ]);
+    await shoot(t, 'fa_torrent_details_phone', const AppShell(),
+        size: const Size(412, 1400), dpr: 2, locale: fa, overrides: [
+      tabProvider.overrideWith(() => TabAt(AppTab.queue)),
+      downloadManagerProvider.overrideWith(() => FakeQueue(detailTasks)),
+      aria2Provider.overrideWithValue(FakeAria2()),
+    ], before: (t) async {
+      await t.pump();
+      await t.tap(find.text('Big Buck Bunny').first);
+    });
     await shoot(t, 'fa_library_phone', const AppShell(),
         size: phone, dpr: 2.5, locale: fa,
         overrides: [tabProvider.overrideWith(() => TabAt(AppTab.library))]);

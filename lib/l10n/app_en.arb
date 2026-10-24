@@ -273,6 +273,55 @@
   "queueSavedTo": "Saved to",
   "queueLog": "Log",
   "queueNoOutput": "No output yet.",
+  "detailsSpeed": "Speed",
+  "detailsDownload": "Download",
+  "detailsUpload": "Upload",
+  "detailsConnections": "Connections",
+  "detailsDownloaded": "Downloaded",
+  "detailsPeers": "Peers",
+  "detailsRatio": "Share ratio",
+  "@detailsRatio": {
+    "description": "Torrent details: uploaded divided by downloaded."
+  },
+  "detailsPieces": "Pieces",
+  "detailsPiecesOf": "{done} of {total} · {size} each",
+  "@detailsPiecesOf": {
+    "description": "Above the piece map of a download: pieces downloaded, all pieces, and the size of one piece.",
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "detailsPeersOf": "{peers} connected · {count, plural, =1{1 seed} other{{count} seeds}}",
+  "@detailsPeersOf": {
+    "description": "Torrent details: connected peers, and how many of them have the whole torrent (seeders).",
+    "placeholders": {
+      "peers": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "detailsNoPeers": "No peers yet. Looking for some.",
+  "detailsNoConnections": "No open connections.",
+  "detailsTorrent": "Torrent",
+  "detailsInfoHash": "Info hash",
+  "detailsCopyHash": "Copy info hash",
+  "detailsHashCopied": "Info hash copied",
+  "detailsUploaded": "Uploaded",
+  "detailsCreated": "Created",
+  "detailsComment": "Comment",
+  "detailsFiles": "Files",
   "stageMerging": "Merging video and audio",
   "stageConvertingAudio": "Converting audio",
   "stageThumbnail": "Embedding thumbnail",
