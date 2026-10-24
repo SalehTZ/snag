@@ -296,6 +296,10 @@ void showSnack(BuildContext context, String message,
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(SnackBar(
     content: Text(message),
+    // Flutter keeps snackbars that have an action on screen until they are
+    // dismissed; ours are just confirmations, so let them time out.
+    persist: false,
+    duration: const Duration(seconds: 4),
     action: actionLabel == null
         ? null
         : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),

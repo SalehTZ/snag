@@ -110,20 +110,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       SettingsScreen(),
     ];
 
-    final body = AnimatedSwitcher(
-      duration: Motion.of(context, Motion.medium),
-      switchInCurve: Motion.effects,
-      switchOutCurve: Motion.effects,
-      transitionBuilder: (child, anim) => FadeTransition(
-        opacity: anim,
-        child: SlideTransition(
-          position: Tween(begin: const Offset(0, 0.015), end: Offset.zero)
-              .animate(anim),
-          child: child,
-        ),
-      ),
-      child: KeyedSubtree(key: ValueKey(tab), child: pages[tab.index]),
-    );
+    final body = TabStack(index: tab.index, children: pages);
 
     void go(int i) => ref.read(tabProvider.notifier).go(AppTab.values[i]);
 
@@ -185,6 +172,70 @@ class _AppShellState extends ConsumerState<AppShell> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Shows one page at a time like a tab switcher, but keeps every page that
+/// has been opened alive, so a half-typed link or a scroll position survives
+/// a trip to another tab. Pages are built the first time they are shown.
+class TabStack extends StatefulWidget {
+  const TabStack({super.key, required this.index, required this.children});
+
+  final int index;
+  final List<Widget> children;
+
+  @override
+  State<TabStack> createState() => _TabStackState();
+}
+
+class _TabStackState extends State<TabStack>
+    with SingleTickerProviderStateMixin {
+  late final _visited = {widget.index};
+  late final _controller =
+      AnimationController(vsync: this, duration: Motion.medium, value: 1);
+  late final _fade = CurvedAnimation(parent: _controller, curve: Motion.effects);
+  late final _slide = Tween(begin: const Offset(0, 0.015), end: Offset.zero)
+      .animate(_fade);
+
+  @override
+  void didUpdateWidget(TabStack old) {
+    super.didUpdateWidget(old);
+    if (old.index == widget.index) return;
+    _visited.add(widget.index);
+    _controller.duration = Motion.of(context, Motion.medium);
+    _controller.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(
+          position: _slide,
+          child: IndexedStack(
+            index: widget.index,
+            sizing: StackFit.expand,
+            children: [
+              for (var i = 0; i < widget.children.length; i++)
+                _page(i, i == widget.index),
+            ],
+          ),
+        ),
+      );
+
+  Widget _page(int i, bool active) {
+    if (!_visited.contains(i)) return const SizedBox.shrink();
+    // Hidden pages stay mounted but must not animate or hold focus.
+    return TickerMode(
+      enabled: active,
+      child: ExcludeFocus(excluding: !active, child: widget.children[i]),
     );
   }
 }
